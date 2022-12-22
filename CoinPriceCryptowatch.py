@@ -19,6 +19,7 @@ from dateutil import parser
 import CoinPrice
 import config
 import DbHelper
+import helperfunc
 from CoinData import CoinData, CoinMarketData, CoinPriceData
 from CoinPrice import CoinPrice, add_standard_arguments
 from DbPostgresql import DbPostgresql
@@ -295,7 +296,7 @@ class CoinPriceCryptowatch(CoinPrice):
                         resp_prices, ts, False)
 
                     # set found coin price data
-                    date = self.convert_timestamp_n(
+                    date = helperfunc.convert_timestamp(
                         resp_price_minimal[0], False)
                     price = resp_price_minimal[1]  # open
                     volume = resp_price_minimal[5]  # volume

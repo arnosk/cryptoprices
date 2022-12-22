@@ -16,6 +16,7 @@ from dateutil import parser
 
 import config
 import DbHelper
+import helperfunc
 from CoinData import CoinData, CoinPriceData
 from CoinPrice import CoinPrice, add_standard_arguments
 from DbPostgresql import DbPostgresql
@@ -42,7 +43,7 @@ class CoinPriceCoingecko(CoinPrice):
         coins = ','.join(coin.siteid for coin in coindata)
         curr = ','.join(currencies)
 
-        # make parameters
+        # make parameters for api call
         params = {}
         params['ids'] = coins
         params['vs_currencies'] = curr
@@ -57,7 +58,7 @@ class CoinPriceCoingecko(CoinPrice):
         for resp_key, resp_val in resp.items():
             for coin in coindata:
                 if resp_key == coin.siteid:
-                    date = self.convert_timestamp_n(
+                    date = helperfunc.convert_timestamp(
                         resp_val['last_updated_at'])
                     for currency in currencies:
                         if currency in resp_val:
@@ -69,37 +70,60 @@ class CoinPriceCoingecko(CoinPrice):
 
         return prices
 
-    def get_price_current_token(self, chain, contracts, curr):
+    def get_price_current_token(self, coindata: list[CoinData], currencies: list[str]) -> list[CoinPriceData]:
         """Get coingecko current price of a token
 
-        chain = chain where contracts are
-        contracts = one string or list of strings with token contracts for market base
-        curr = one string or list of strings with assets for market quote
-        **kwargs = extra arguments in url 
+        coindata = list of CoinData for market base
+        curr = list of strings with assets for market quote
+
+        returns list of CoinPriceData
+
+        coindata.chain = chain where contracts are
+        coindata.siteid = contract address
         """
         # convert list to comma-separated string
-        if isinstance(contracts, list):
-            contracts = ','.join(contracts)
-        if isinstance(curr, list):
-            curr = ','.join(curr)
+        curr = ','.join(currencies)
+        chains = [coin.chain for coin in coindata]
 
-        # make parameters
+        # prepare parameters for api call
         params = {}
-        params['contract_addresses'] = contracts
         params['vs_currencies'] = curr
         params['include_last_updated_at'] = True
 
-        url = '{}/simple/token_price/{}'.format(config.COINGECKO_URL, chain)
-        url = self.req.api_url_params(url, params)
-        resp = self.req.get_request_response(url)
+        # create empty list of CoinPriceData from respone
+        prices: list[CoinPriceData] = []
 
-        # remove status_code from dictionary
-        resp.pop('status_code')
+        # make api call per chain
+        for chain in chains:
+            # convert list to comma-separated string
+            contracts = ','.join(
+                coin.siteid for coin in coindata if coin.chain == chain)
 
-        # convert timestamp to date
-        resp = self.convert_timestamp_lastupdated(resp)
+            # prepare parameters for api call
+            params['contract_addresses'] = contracts
 
-        return resp
+            url = f'{config.COINGECKO_URL}/simple/token_price/{chain}'
+            url = self.req.api_url_params(url, params)
+            resp = self.req.get_request_response(url)
+
+            # remove status_code from dictionary
+            resp.pop('status_code')
+
+            # extend list of CoinPriceData from respone
+            for resp_key, resp_val in resp.items():
+                for coin in coindata:
+                    if resp_key == coin.siteid:
+                        date = helperfunc.convert_timestamp(
+                            resp_val['last_updated_at'])
+                        for currency in currencies:
+                            if currency in resp_val:
+                                prices.append(CoinPriceData(
+                                    date=date,
+                                    coin=coin,
+                                    curr=currency,
+                                    price=resp_val[currency]))
+
+        return prices
 
     def get_price_hist(self, coindata: list[CoinData], currencies: list[str], date: str) -> list[CoinPriceData]:
         """Get coingecko history price
@@ -264,7 +288,7 @@ class CoinPriceCoingecko(CoinPrice):
                         resp_prices, ts, True)
 
                     # set found coin price data
-                    date = self.convert_timestamp_n(
+                    date = helperfunc.convert_timestamp(
                         resp_prices[resp_price_index][0], True)
                     price = resp_prices[resp_price_index][1]
                     volume = resp['total_volumes'][resp_price_index][1]

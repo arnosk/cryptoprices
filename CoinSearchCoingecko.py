@@ -29,6 +29,7 @@ import re
 
 import config
 import DbHelper
+import helperfunc
 from CoinData import CoinData, CoinSearchData
 from CoinSearch import CoinSearch
 from Db import Db
@@ -70,14 +71,14 @@ class CoinSearchCoingecko(CoinSearch):
         """
         folder = config.IMAGE_PATH
         if 'thumb' in image_urls:
-            self.save_file(image_urls['thumb'], folder, 'coingecko_%s_%s' % (
-                coin_name, 'thumb'))
+            helperfunc.save_file(
+                image_urls['thumb'], folder, f'coingecko_{coin_name}_thumb')
         if 'small' in image_urls:
-            self.save_file(image_urls['small'], folder, 'coingecko_%s_%s' % (
-                coin_name, 'small'))
+            helperfunc.save_file(
+                image_urls['small'], folder, f'coingecko_{coin_name}_small')
         if 'large' in image_urls:
-            self.save_file(image_urls['large'], folder, 'coingecko_%s_%s' % (
-                coin_name, 'large'))
+            helperfunc.save_file(
+                image_urls['large'], folder, f'coingecko_{coin_name}_large')
 
     def download_images(self, db: Db):
         """Download image files for all coins in database from Coingecko

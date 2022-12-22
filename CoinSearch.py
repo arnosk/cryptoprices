@@ -6,14 +6,12 @@ Created on October 13, 2022
 Base Class CoinSearch
 
 """
-import os
 import shlex
 import sys
 from abc import ABC, abstractmethod
 from dataclasses import asdict, dataclass
 from typing import List
 
-import cfscrape
 import pandas as pd
 
 import DbHelper
@@ -89,29 +87,6 @@ class CoinSearch(ABC):
         coin_name = string with name of coin
         """
         pass
-
-    def save_file(self, url: str, folder: str, filename: str):
-        """Download and safe a file from internet
-
-        If folder doesn't exists, create the folder
-
-        url = url to download file
-        folder = folder for saving downloaded file
-        filename = filename for saving downloaded file
-        """
-        os.makedirs(folder, exist_ok=True)
-
-        url = url.split('?')[0]
-        ext = url.split('.')[-1]
-        file = '%s\\%s.%s' % (folder, filename, ext)
-
-        # Download file
-        scraper = cfscrape.create_scraper()
-        cfurl = scraper.get(url).content
-
-        # Safe file
-        with open(file, 'wb') as f:
-            f.write(cfurl)
 
     def search_id_db(self, db: Db, coin_search: str) -> list[CoinData]:
         """Search for coin in database

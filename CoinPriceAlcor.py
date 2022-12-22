@@ -16,6 +16,7 @@ from dateutil import parser
 
 import config
 import DbHelper
+import helperfunc
 from CoinData import CoinData, CoinMarketData, CoinPriceData
 from CoinPrice import CoinPrice, add_standard_arguments
 from DbPostgresql import DbPostgresql
@@ -161,7 +162,7 @@ class CoinPriceAlcor(CoinPrice):
                         resp_prices, ts, True)
 
                     # set found coin price data
-                    date = self.convert_timestamp_n(
+                    date = helperfunc.convert_timestamp(
                         resp_price_minimal['time'], True)
                     price = resp_price_minimal['open']
                     volume = resp_price_minimal['volume']

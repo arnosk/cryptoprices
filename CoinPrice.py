@@ -6,16 +6,17 @@ Created on October 15, 2022
 Base Class CoinPrice
 
 """
-from argparse import ArgumentParser
-from dataclasses import asdict
 import re
 from abc import ABC, abstractmethod
-from datetime import datetime, timezone
-import pandas as pd
+from argparse import ArgumentParser
+from dataclasses import asdict
 from pathlib import Path
-from CoinData import CoinData, CoinPriceData
+
+import pandas as pd
 
 import config
+import helperfunc
+from CoinData import CoinData, CoinPriceData
 from RequestHelper import RequestHelper
 
 
@@ -26,7 +27,7 @@ class CoinPrice(ABC):
     def __init__(self) -> None:
         self.req = RequestHelper()
         self.nr_try_max: int = 10
-    
+
     @abstractmethod
     def get_price_current(self, coindata: list[CoinData], currencies: list[str]) -> list[CoinPriceData]:
         """Get current price
@@ -39,7 +40,7 @@ class CoinPrice(ABC):
         pass
 
     @abstractmethod
-    def get_price_hist_marketchart(self, coindata: list[CoinData], currencies: list[str], date: str, chain: str='none') -> list[CoinPriceData]:
+    def get_price_hist_marketchart(self, coindata: list[CoinData], currencies: list[str], date: str, chain: str = 'none') -> list[CoinPriceData]:
         """Get history price of a coin or a token
 
         If chain = 'none' or None search for a coins otherwise search for token contracts
@@ -60,42 +61,6 @@ class CoinPrice(ABC):
             nr, total), end='', flush=True)
         #sys.stdout.write("Retrieving nr {:3d} of {}\r".format(nr, total))
         # sys.stdout.flush()
-
-    def convert_timestamp_n(self, ts: int, ms: bool=False) -> datetime:
-        """Convert timestamp to date string
-
-        ts = timestamp in sec if ms = False
-        ts = timestamp in msec if ms = True
-        """
-        if ms:
-            ts = int(ts/1000)
-        dt = datetime.fromtimestamp(ts, tz=timezone.utc)
-        return dt
-
-    def convert_timestamp(self, ts, ms=False) -> str:
-        """Convert timestamp to date string
-
-        ts = timestamp in sec if ms = False
-        ts = timestamp in msec if ms = True
-        """
-        if ms:
-            ts = int(ts/1000)
-        dt = datetime.fromtimestamp(ts, tz=timezone.utc)
-        return str(dt)
-
-    def convert_timestamp_lastupdated(self, resp):
-        """Convert LastUpdated field in dictonary from timestamp to date
-
-        resp = a list of dictionaries with history data from alcor
-        """
-        key_lastupdated = 'last_updated_at'
-        for v in resp.values():
-            if isinstance(v, dict):
-                if key_lastupdated in v.keys():
-                    ts = v[key_lastupdated]
-                    v.update(
-                        {key_lastupdated: self.convert_timestamp(ts, False)})
-        return resp
 
     def write_to_file(self, pricedata: list[CoinPriceData], output_csv: str, output_xls: str, suffix: str):
         """Write a dataframe to a csv file and/or excel file
@@ -127,7 +92,7 @@ class CoinPrice(ABC):
 
         if output_xls is not None:
             # remove timezone, because excel cannot handle this
-            df['date'] = remove_tz(df['date'])
+            df['date'] = helperfunc.remove_tz(df['date'])
             filepath = Path('%s%s%s.xlsx' % (outputpath, output_xls, suffix))
             filepath.parent.mkdir(parents=True, exist_ok=True)
             df.to_excel(filepath)
@@ -163,18 +128,10 @@ class CoinPrice(ABC):
         """
         df = pd.json_normalize(data=[asdict(obj) for obj in pricedata])
         df.sort_values(by=['coin.name', 'curr'],
-                    key=lambda col: col.str.lower(), inplace=True)
+                       key=lambda col: col.str.lower(), inplace=True)
         return df
-        
-def remove_tz(serie: pd.Series) -> pd.Series:
-    """Remove timezone in panda column
 
-    serie = pandas Series of type datetime 
 
-    returns pandas Series of type datetime
-    """
-    return serie.apply(lambda d: d if d.tzinfo is None or d.tzinfo.utcoffset(d) is None else pd.to_datetime(d).tz_localize(None))
-    
 def add_standard_arguments(exchange: str = '') -> ArgumentParser:
     """Add default arguments
 
