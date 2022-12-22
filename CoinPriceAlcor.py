@@ -11,7 +11,6 @@ import copy
 import math
 import re
 from datetime import datetime
-from typing import Dict
 
 from dateutil import parser
 
@@ -19,7 +18,6 @@ import config
 import DbHelper
 from CoinData import CoinData, CoinMarketData, CoinPriceData
 from CoinPrice import CoinPrice, add_standard_arguments
-from Db import Db
 from DbPostgresql import DbPostgresql
 from DbSqlite3 import DbSqlite3
 

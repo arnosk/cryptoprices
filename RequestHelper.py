@@ -6,7 +6,6 @@ Created on Apr 21, 2022
 Request URL Helper to get response from API 
 """
 import time
-from typing import Dict
 
 import requests
 from requests.adapters import HTTPAdapter
