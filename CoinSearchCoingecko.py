@@ -68,14 +68,15 @@ class CoinSearchCoingecko(CoinSearch):
         image_urls = dict if urls for images
         coin_name = string with name of coin
         """
+        folder = config.IMAGE_PATH
         if 'thumb' in image_urls:
-            self.save_file(image_urls['thumb'], 'coinimages', 'coingecko_%s_%s' % (
+            self.save_file(image_urls['thumb'], folder, 'coingecko_%s_%s' % (
                 coin_name, 'thumb'))
         if 'small' in image_urls:
-            self.save_file(image_urls['small'], 'coinimages', 'coingecko_%s_%s' % (
+            self.save_file(image_urls['small'], folder, 'coingecko_%s_%s' % (
                 coin_name, 'small'))
         if 'large' in image_urls:
-            self.save_file(image_urls['large'], 'coinimages', 'coingecko_%s_%s' % (
+            self.save_file(image_urls['large'], folder, 'coingecko_%s_%s' % (
                 coin_name, 'large'))
 
     def download_images(self, db: Db):
