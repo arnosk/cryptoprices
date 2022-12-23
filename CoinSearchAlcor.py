@@ -10,10 +10,10 @@ import argparse
 import re
 
 import config
-import DbHelper
 from CoinData import CoinData, CoinSearchData
 from CoinSearch import CoinSearch
 from Db import Db
+from DbHelper import DbTableName, DbWebsiteName
 from DbPostgresql import DbPostgresql
 from DbSqlite3 import DbSqlite3
 
@@ -23,7 +23,7 @@ class CoinSearchAlcor(CoinSearch):
     """
 
     def __init__(self) -> None:
-        self.table_name = DbHelper.DbTableName.coinAlcor.name
+        self.website = DbWebsiteName.alcor.name
         super().__init__()
 
     def insert_coin(self, db: Db, coin: CoinSearchData) -> int:
@@ -33,11 +33,13 @@ class CoinSearchAlcor(CoinSearch):
         coin = search data with retrieved coin info from web
         return value = rowcount or total changes 
         """
-        query = f'INSERT INTO {self.table_name} (siteid, base, quote, chain) VALUES(?,?,?,?)'
-        args = (coin.coin.siteid,
-                coin.coin.base,
+        query = f'INSERT INTO {DbTableName.coin.name} (website_id, siteid, name, symbol, chain, base) VALUES(?,?,?,?,?,?)'
+        args = (self.website_id,
+                coin.coin.siteid,
                 coin.coin.name,  # = quote
-                coin.coin.chain)
+                coin.coin.symbol,  # = quote symbol
+                coin.coin.chain,
+                coin.coin.base)
         res = db.execute(query, args)
         db.commit()
         return res
@@ -97,12 +99,13 @@ class CoinSearchAlcor(CoinSearch):
                        ? is used for the search item
         """
         # Sqlite use INSTR, other databases use CHARINDEX('@',quote,0) ??
-        coin_search_query = f'''SELECT siteid, quote, 
-                                    SUBSTRING(quote,0,INSTR(quote,'@')) AS symbol, 
-                                    chain, base 
-                                FROM {self.table_name} WHERE
-                                    base like ? or
-                                    quote like ?
+        coin_search_query = f'''SELECT siteid, name, symbol FROM {DbTableName.coin.name} WHERE
+                                website_id = {self.website_id} AND
+                                (siteid like ? or
+                                 name like ? or
+                                 symbol like ? or
+                                 base like ?
+                                )
                             '''
         return coin_search_query
 
@@ -179,7 +182,7 @@ def __main__():
         raise RuntimeError('No database configuration')
 
     db.check_db()
-    db.check_table(cs.table_name)
+    db.check_table(DbTableName.coin.name)
 
     # get all assets from Alcor
     coin_assets = cs.get_all_assets(chains)

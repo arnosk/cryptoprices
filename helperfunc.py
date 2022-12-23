@@ -22,19 +22,23 @@ def save_file(url: str, folder: str, filename: str):
     folder = folder for saving downloaded file
     filename = filename for saving downloaded file
     """
-    os.makedirs(folder, exist_ok=True)
+    if url != '':
+        os.makedirs(folder, exist_ok=True)
 
-    url = url.split('?')[0]
-    ext = url.split('.')[-1]
-    file = '%s\\%s.%s' % (folder, filename, ext)
+        url = url.split('?')[0]
+        ext = url.split('.')[-1]
+        file = f'{folder}\\{filename}.{ext}'
 
-    # Download file
-    scraper = cfscrape.create_scraper()
-    cfurl = scraper.get(url).content
+        # Download file
+        scraper = cfscrape.create_scraper()
+        cfurl = scraper.get(url).content
 
-    # Safe file
-    with open(file, 'wb') as f:
-        f.write(cfurl)
+        # Safe file
+        with open(file, 'wb') as f:
+            f.write(cfurl)
+        print(f'Image file saved: {file}')
+    else:
+        print(f'URL is empty! No image filed saved {filename}')
 
 
 def convert_timestamp(ts: int, ms: bool = False) -> datetime:

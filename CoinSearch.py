@@ -17,6 +17,7 @@ import pandas as pd
 import DbHelper
 from CoinData import CoinData, CoinSearchData
 from Db import Db
+from DbHelper import DbTableName
 from RequestHelper import RequestHelper
 
 
@@ -35,9 +36,10 @@ class Command:
 class CoinSearch(ABC):
     """Base class for searching a coin on an exchange or provider
     """
-    table_name: str
+    website: str
 
     def __init__(self) -> None:
+        self.website_id: int = 0
         self.req = RequestHelper()
 
     @abstractmethod
@@ -96,18 +98,20 @@ class CoinSearch(ABC):
         return value = list with search results
         """
         coindata = []
-        if db.check_table(self.table_name):
-            coin_search_str = f'%{coin_search}%'
-            coin_search_query = self.get_search_id_db_query()
+        if db.check_table(DbTableName.coin.name):
+            self.website_id = DbHelper.get_website_id(db, self.website)
+            if self.website_id > 0:
+                coin_search_str = f'%{coin_search}%'
+                coin_search_query = self.get_search_id_db_query()
 
-            # Create params tuple of n search items
-            n = coin_search_query.count('?')
-            params = (coin_search_str,)*n
+                # Create params tuple of n search items
+                n = coin_search_query.count('?')
+                params = (coin_search_str,)*n
 
-            db_result = db.query(coin_search_query, params)
-            print(db_result)
-            print(type(db_result))
-            coindata = [CoinData(*x) for x in db_result]
+                db_result = db.query(coin_search_query, params)
+                print(db_result)
+                print(type(db_result))
+                coindata = [CoinData(*x) for x in db_result]
         return coindata
 
     def print_search_result(self, items: list, text: str, col_drop=[]):
@@ -149,11 +153,17 @@ class CoinSearch(ABC):
         # check if coin name, symbol is already in our database
         if db.has_connection():
             # if table doesn't exist, create table coins
-            if not db.check_table(self.table_name):
-                DbHelper.create_table(db, self.table_name)
+            if not db.check_table(DbTableName.website.name):
+                DbHelper.create_coin_table(db)
 
-            db_result = db.query(f'SELECT * FROM {self.table_name} WHERE siteid=?',
-                                 (coin_id,))
+            # check if new website / echange
+            self.website_id = DbHelper.get_website_id(db, self.website)
+            if self.website_id == 0:
+                DbHelper.insert_website(db, self.website)
+                self.website_id = DbHelper.get_website_id(db, self.website)
+
+            db_result = db.query(f'SELECT * FROM {DbTableName.coin.name} WHERE siteid=? AND website_id=?',
+                                 (coin_id, self.website_id))
             if len(db_result):
                 print(f'Database already has a row with the coin {coin_name}')
             else:

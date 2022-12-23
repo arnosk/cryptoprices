@@ -10,10 +10,10 @@ import argparse
 import re
 
 import config
-import DbHelper
 from CoinData import CoinData, CoinSearchData
 from CoinSearch import CoinSearch
 from Db import Db
+from DbHelper import DbTableName, DbWebsiteName
 from DbPostgresql import DbPostgresql
 from DbSqlite3 import DbSqlite3
 
@@ -23,7 +23,7 @@ class CoinSearchCryptowatch(CoinSearch):
     """
 
     def __init__(self) -> None:
-        self.table_name = DbHelper.DbTableName.coinCryptowatch.name
+        self.website = DbWebsiteName.cryptowatch.name
         super().__init__()
 
         # Update header of request session with user API key
@@ -36,8 +36,9 @@ class CoinSearchCryptowatch(CoinSearch):
         coin = search data with retrieved coin info from web
         return value = rowcount or total changes 
         """
-        query = f'INSERT INTO {self.table_name} (siteid, name, symbol) VALUES(?,?,?)'
-        args = (coin.coin.siteid,
+        query = f'INSERT INTO {DbTableName.coin.name} (website_id, siteid, name, symbol) VALUES(?,?,?,?)'
+        args = (self.website_id,
+                coin.coin.siteid,
                 coin.coin.name,
                 coin.coin.symbol)
         res = db.execute(query, args)
@@ -90,10 +91,12 @@ class CoinSearchCryptowatch(CoinSearch):
         return value = query for database search with 
                        ? is used for the search item
         """
-        coin_search_query = f'''SELECT siteid, name, symbol FROM {self.table_name} WHERE
-                                siteid like ? or
-                                name like ? or
-                                symbol like ?
+        coin_search_query = f'''SELECT siteid, name, symbol FROM {DbTableName.coin.name} WHERE
+                                website_id = {self.website_id} AND
+                                (siteid like ? or
+                                 name like ? or
+                                 symbol like ?
+                                )
                             '''
         return coin_search_query
 
@@ -156,7 +159,7 @@ def __main__():
         raise RuntimeError('No database configuration')
 
     db.check_db()
-    db.check_table(cs.table_name)
+    db.check_table(DbTableName.coin.name)
 
     # get all assets from cryptowatch
     coin_assets = cs.get_all_assets()

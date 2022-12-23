@@ -14,12 +14,14 @@ from typing import Optional
 @dataclass
 class CoinData:
     """Dataclass for coin data
+
+    Name is also called quote for Alcor exchange
     """
     siteid: str
     name: str = ''
     symbol: str = ''
     chain: str = ''
-    base: Optional[str] = ''  # only use in CoinSearchAlcor
+    base: Optional[str] = ''  # only used for Alcor
 
     def __post_init__(self):
         """Set coin name when not given

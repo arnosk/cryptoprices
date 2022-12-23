@@ -23,8 +23,10 @@ from RequestHelper import RequestHelper
 class CoinPrice(ABC):
     """Base class for looking up the price of a coin on an exchange or provider
     """
+    website: str
 
     def __init__(self) -> None:
+        self.website_id: int = 0
         self.req = RequestHelper()
         self.nr_try_max: int = 10
 

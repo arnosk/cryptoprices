@@ -10,6 +10,7 @@ Alcor
 import copy
 import math
 import re
+from calendar import c
 from datetime import datetime
 
 from dateutil import parser
@@ -19,6 +20,7 @@ import DbHelper
 import helperfunc
 from CoinData import CoinData, CoinMarketData, CoinPriceData
 from CoinPrice import CoinPrice, add_standard_arguments
+from DbHelper import DbTableName, DbWebsiteName
 from DbPostgresql import DbPostgresql
 from DbSqlite3 import DbSqlite3
 
@@ -28,7 +30,7 @@ class CoinPriceAlcor(CoinPrice):
     """
 
     def __init__(self) -> None:
-        self.table_name: str = DbHelper.DbTableName.coinAlcor.name
+        self.website = DbWebsiteName.alcor.name
         self.markets: dict[str, CoinMarketData] = {}
         super().__init__()
 
@@ -36,6 +38,7 @@ class CoinPriceAlcor(CoinPrice):
         """Get alcor current price
 
         coindata = list of CoinData for market base and quote and chain
+        coin.chain and coin.siteid are used to retrieve data from api
 
         returns list of CoinPriceData
         """
@@ -52,8 +55,9 @@ class CoinPriceAlcor(CoinPrice):
 
             # search through result for coin in the dict
             for item in resp['result']:
-                if item['id'] in val_coins:
-                    coin = val_coins[item['id']]
+                item_id = str(item['id'])
+                if item_id in val_coins:
+                    coin = val_coins[item_id]
                     coin.name = item['quote_token']['str']
                     coin.symbol = item['quote_token']['symbol']['name']
                     coin_price_data = CoinPriceData(
@@ -202,7 +206,9 @@ def __main__():
 
     # check if database and table coins exists and has values
     db.check_db()
-    db_table_exist = db.check_table(cp.table_name)
+    db_table_exist = db.check_table(DbTableName.coin.name)
+    if db_table_exist:
+        cp.website_id = DbHelper.get_website_id(db, cp.website)
 
     # Determine which coins to retrieve prices for
     # From arguments, from database, or take default
@@ -210,16 +216,18 @@ def __main__():
         coins = re.split('[;,]', coin_str)
         chain = chain_str if chain_str != None else 'proton'
         coin_data = [CoinData(siteid=i, chain=chain) for i in coins]
-        coins = [[chain, i] for i in coins]
-    elif db_table_exist:
-        coins = db.query(
-            f'SELECT chain, siteid, quote, base FROM {cp.table_name}')
-        coin_data = [CoinData(chain=i[0], siteid=i[1], name=i[2])
-                     for i in coins]  # symbol=i[3] = base???
-        coins = [[i[0], i[1], i[2], i[3]] for i in coins]
+    elif cp.website_id > 0:
+        query = f'''SELECT chain, siteid, {DbTableName.coin.name}.name, symbol, base FROM {DbTableName.coin.name} 
+                    LEFT JOIN {DbTableName.website.name} ON 
+                    {DbTableName.coin.name}.website_id = {DbTableName.website.name}.id
+                    WHERE {DbTableName.website.name}.name = "{cp.website}"
+                '''
+        coins = db.query(query)
+        coin_data = [CoinData(chain=i[0], siteid=i[1], name=i[2], symbol=i[3], base=i[4])
+                     for i in coins]
     else:
-        coins = [['proton', 157], ['wax', 158], ['proton', 13], ['wax', 67],
-                 ['proton', 5], ['eos', 2], ['telos', 34], ['proton', 96]]
+        coins = [['proton', '157'], ['wax', '158'], ['proton', '13'], ['wax', '67'],
+                 ['proton', '5'], ['eos', '2'], ['telos', '34'], ['proton', '96']]
         coin_data = [CoinData(siteid=i[1], chain=i[0]) for i in coins]
 
     print('* Current price of coins')

@@ -33,6 +33,7 @@ import helperfunc
 from CoinData import CoinData, CoinSearchData
 from CoinSearch import CoinSearch
 from Db import Db
+from DbHelper import DbTableName, DbWebsiteName
 from DbPostgresql import DbPostgresql
 from DbSqlite3 import DbSqlite3
 
@@ -42,7 +43,7 @@ class CoinSearchCoingecko(CoinSearch):
     """
 
     def __init__(self) -> None:
-        self.table_name = DbHelper.DbTableName.coinCoingecko.name
+        self.website = DbWebsiteName.coingecko.name
         super().__init__()
 
     def insert_coin(self, db: Db, coin: CoinSearchData) -> int:
@@ -54,8 +55,9 @@ class CoinSearchCoingecko(CoinSearch):
         coin = search data with retrieved coin info from web
         return value = rowcount or total changes 
         """
-        query = f'INSERT INTO {self.table_name} (siteid, name, symbol) VALUES(?,?,?)'
-        args = (coin.coin.siteid,
+        query = f'INSERT INTO {DbTableName.coin.name} (website_id, siteid, name, symbol) VALUES(?,?,?,?)'
+        args = (self.website_id,
+                coin.coin.siteid,
                 coin.coin.name,
                 coin.coin.symbol)
         res = db.execute(query, args)
@@ -85,7 +87,10 @@ class CoinSearchCoingecko(CoinSearch):
         db = instance of Db
         """
         # Get all coingeckoid's from database
-        coins = db.query(f'SELECT siteid FROM {self.table_name}')
+        self.website_id = DbHelper.get_website_id(db, self.website)
+        coins = db.query(
+            f'SELECT siteid FROM {DbTableName.coin.name} WHERE website_id = ?',
+            (self.website_id,))
         coins = [i[0] for i in coins]
 
         # Retrieve coin info from coingecko
@@ -189,10 +194,12 @@ class CoinSearchCoingecko(CoinSearch):
         return value = query for database search with 
                        ? is used for the search item
         """
-        coin_search_query = f'''SELECT siteid, name, symbol FROM {self.table_name} WHERE
-                                siteid like ? or
-                                name like ? or
-                                symbol like ?
+        coin_search_query = f'''SELECT siteid, name, symbol FROM {DbTableName.coin.name} WHERE
+                                website_id = {self.website_id} AND
+                                (siteid like ? or
+                                 name like ? or
+                                 symbol like ?
+                                )
                             '''
         return coin_search_query
 
@@ -273,7 +280,7 @@ def __main__():
         raise RuntimeError('No database configuration')
 
     db.check_db()
-    db_table_exist = db.check_table(cs.table_name)
+    db_table_exist = db.check_table(DbTableName.coin.name)
 
     if searchweb:
         # search directly from coingecko

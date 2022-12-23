@@ -19,6 +19,7 @@ import DbHelper
 import helperfunc
 from CoinData import CoinData, CoinPriceData
 from CoinPrice import CoinPrice, add_standard_arguments
+from DbHelper import DbTableName, DbWebsiteName
 from DbPostgresql import DbPostgresql
 from DbSqlite3 import DbSqlite3
 
@@ -28,7 +29,7 @@ class CoinPriceCoingecko(CoinPrice):
     """
 
     def __init__(self) -> None:
-        self.table_name = DbHelper.DbTableName.coinCoingecko.name
+        self.website = DbWebsiteName.coingecko.name
         super().__init__()
 
     def get_price_current(self, coindata: list[CoinData], currencies: list[str]) -> list[CoinPriceData]:
@@ -323,15 +324,22 @@ def __main__():
 
     # check if database and table coins exists and has values
     db.check_db()
-    db_table_exist = db.check_table(cp.table_name)
+    db_table_exist = db.check_table(DbTableName.coin.name)
+    if db_table_exist:
+        cp.website_id = DbHelper.get_website_id(db, cp.website)
 
     # Determine which coins to retrieve prices for
     # From arguments, from database, or take default
     if coin_str != None:
         coins = re.split('[;,]', coin_str)
         coin_data = [CoinData(siteid=i) for i in coins]
-    elif db_table_exist:
-        coins = db.query(f'SELECT siteid, name, symbol FROM {cp.table_name}')
+    elif cp.website_id > 0:
+        query = f'''SELECT siteid, {DbTableName.coin.name}.name, symbol FROM {DbTableName.coin.name} 
+                    LEFT JOIN {DbTableName.website.name} ON 
+                    {DbTableName.coin.name}.website_id = {DbTableName.website.name}.id
+                    WHERE {DbTableName.website.name}.name = "{cp.website}"
+                '''
+        coins = db.query(query)
         coin_data = [CoinData(siteid=i[0], name=i[1], symbol=i[2])
                      for i in coins]
         coins = [i[0] for i in coins]
