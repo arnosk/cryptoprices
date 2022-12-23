@@ -69,7 +69,6 @@ def get_website_id(db: Db, website: str) -> int:
     query = f'SELECT id FROM {DbTableName.website.name} WHERE name = ?'
     args = (website,)
     res = db.query(query, args)
-    print('getwebsiteid: ', res)
     if len(res) > 0:
         return res[0][0]
     else:
