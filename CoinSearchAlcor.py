@@ -99,7 +99,7 @@ class CoinSearchAlcor(CoinSearch):
                        ? is used for the search item
         """
         # Sqlite use INSTR, other databases use CHARINDEX('@',quote,0) ??
-        coin_search_query = f'''SELECT siteid, name, symbol FROM {DbTableName.coin.name} WHERE
+        coin_search_query = f'''SELECT siteid, name, symbol, chain, base FROM {DbTableName.coin.name} WHERE
                                 website_id = {self.website_id} AND
                                 (siteid like ? or
                                  name like ? or
