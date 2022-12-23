@@ -97,7 +97,7 @@ class CoinSearch(ABC):
         """
         coindata = []
         if db.check_table(self.table_name):
-            coin_search_str = '%{}%'.format(coin_search)
+            coin_search_str = f'%{coin_search}%'
             coin_search_query = self.get_search_id_db_query()
 
             # Create params tuple of n search items
@@ -152,23 +152,22 @@ class CoinSearch(ABC):
             if not db.check_table(self.table_name):
                 DbHelper.create_table(db, self.table_name)
 
-            db_result = db.query('SELECT * FROM {} WHERE siteid=?'.format(self.table_name),
+            db_result = db.query(f'SELECT * FROM {self.table_name} WHERE siteid=?',
                                  (coin_id,))
             if len(db_result):
-                print('Database already has a row with the coin %s' %
-                      (coin_name))
+                print(f'Database already has a row with the coin {coin_name}')
             else:
                 # add new row to table coins
                 insert_result = self.insert_coin(db, coin)
                 if insert_result > 0:
-                    print('%s added to the database' % (coin_name))
+                    print(f'{coin_name} added to the database')
 
                     # safe coin images
                     images_urls = {'thumb': coin.image_thumb,
                                    'large': coin.image_large}
                     self.save_images(images_urls, coin_name)
                 else:
-                    print('Error adding %s to database' % (coin_name))
+                    print(f'Error adding {coin_name} to database')
         else:
             print('No database connection')
 

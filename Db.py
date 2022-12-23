@@ -66,9 +66,9 @@ class Db(ABC):
                 if self.query(query_chk_table, (table_name,)):
                     # table exists
                     check = True
-                    print('"{}" table exist'.format(table_name))
+                    print(f'"{table_name}" table exist')
                 else:
-                    print('"{}" table not exist.'.format(table_name))
+                    print(f'"{table_name}" table not exist.')
         else:
             raise RuntimeError('Database not connected')
         return check
@@ -111,7 +111,7 @@ class Db(ABC):
         return value = rowcount or total changes
         """
         print('Execute:', sql, params)
-        cursor = self.conn.cursor()
+        cursor = self.conn.cursor()  # type: ignore
         if params:
             cursor.execute(sql, params)
         else:
@@ -128,7 +128,7 @@ class Db(ABC):
         return value = fetched data from query
         """
         print('Query:', sql, params)
-        cursor = self.conn.cursor()
+        cursor = self.conn.cursor()  # type: ignore
         if params:
             cursor.execute(sql, params)
         else:
@@ -138,10 +138,10 @@ class Db(ABC):
         return result
 
     def commit(self):
-        self.conn.commit()
+        self.conn.commit()  # type: ignore
 
     def rollback(self):
-        self.conn.rollback()
+        self.conn.rollback()  # type: ignore
 
     def has_connection(self):
         return self.conn != None

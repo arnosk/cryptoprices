@@ -49,7 +49,7 @@ class CoinPriceCoingecko(CoinPrice):
         params['vs_currencies'] = curr
         params['include_last_updated_at'] = True
 
-        url = '{}/simple/price'.format(config.COINGECKO_URL)
+        url = f'{config.COINGECKO_URL}/simple/price'
         url = self.req.api_url_params(url, params)
         resp = self.req.get_request_response(url)
 
@@ -143,8 +143,7 @@ class CoinPriceCoingecko(CoinPrice):
         for coin in coindata:
             i += 1
             self.show_progress(i, len(coindata))
-            url = '{}/coins/{}/history?date={}&localization=false'.format(
-                config.COINGECKO_URL, coin.siteid, date)
+            url = f'{config.COINGECKO_URL}/coins/{coin.siteid}/history?date={date}&localization=false'
             resp = self.req.get_request_response(url)
 
             if resp['status_code'] == 'error':
@@ -256,11 +255,9 @@ class CoinPriceCoingecko(CoinPrice):
         params_try = copy.deepcopy(params)
 
         if (chain == '' or chain == 'none' or chain is None):
-            url = '{}/coins/{}/market_chart/range'.format(
-                config.COINGECKO_URL, coin.siteid)
+            url = f'{config.COINGECKO_URL}/coins/{coin.siteid}/market_chart/range'
         else:
-            url = '{}/coins/{}/contract/{}/market_chart/range'.format(
-                config.COINGECKO_URL, chain, coin.siteid)
+            url = f'{config.COINGECKO_URL}/coins/{chain}/contract/{coin.siteid}/market_chart/range'
 
         date = dt
         price = math.nan
@@ -334,8 +331,7 @@ def __main__():
         coins = re.split('[;,]', coin_str)
         coin_data = [CoinData(siteid=i) for i in coins]
     elif db_table_exist:
-        coins = db.query(
-            'SELECT siteid, name, symbol FROM {}'.format(cp.table_name))
+        coins = db.query(f'SELECT siteid, name, symbol FROM {cp.table_name}')
         coin_data = [CoinData(siteid=i[0], name=i[1], symbol=i[2])
                      for i in coins]
         coins = [i[0] for i in coins]
@@ -352,21 +348,21 @@ def __main__():
     price = cp.get_price_current(coin_data, curr)
     cp.print_coinpricedata(price)
     cp.write_to_file(price, output_csv, output_xls,
-                     '_current_coins_%s' % (current_date))
+                     f'_current_coins_{current_date}')
     print()
 
     print('* History price of coins')
     price = cp.get_price_hist(coin_data, curr, date)
     cp.print_coinpricedata(price)
     cp.write_to_file(price, output_csv, output_xls,
-                     '_hist_%s' % (date))
+                     f'_hist_{date}')
     print()
 
     print('* History price of coins via market_chart')
     price = cp.get_price_hist_marketchart(coin_data, curr, date)
     cp.print_coinpricedata(price)
     cp.write_to_file(price, output_csv, output_xls,
-                     '_hist_marketchart_%s' % (date))
+                     f'_hist_marketchart_{date}')
     print()
 
     # print('* Current price of token')
@@ -376,7 +372,7 @@ def __main__():
     # print()
     # print(df)
     # cp.write_to_file(df, output_csv, output_xls,
-    #                  '_current_token_%s' % (current_date))
+    #                  f'_current_token_{current_date}')
     # print()
 
     # print('* History price of token via market_chart')
@@ -386,7 +382,7 @@ def __main__():
     # print()
     # print(df)
     # cp.write_to_file(df, output_csv, output_xls,
-    #                  '_hist_marketchart_token_%s' % (date))
+    #                  f'_hist_marketchart_token_{date}')
     # print()
 
 

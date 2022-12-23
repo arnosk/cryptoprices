@@ -42,7 +42,7 @@ class DbSqlite3(Db):
         """
         if not self.conn:
             dbname = self.config['dbname']
-            self.conn = sqlite3.connect('file:%s?mode=rw' % dbname, uri=True)
+            self.conn = sqlite3.connect(f'file:{dbname}?mode=rw', uri=True)
         else:
             raise RuntimeError('Database connection already exists')
 

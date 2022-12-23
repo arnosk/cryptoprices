@@ -57,9 +57,8 @@ class CoinPrice(ABC):
     def show_progress(self, nr: int, total: int):
         """Show progress to standard output
         """
-        print("\rRetrieving nr {:3d} of {}".format(
-            nr, total), end='', flush=True)
-        #sys.stdout.write("Retrieving nr {:3d} of {}\r".format(nr, total))
+        print(f'\rRetrieving nr {nr:3d} of {total}', end='', flush=True)
+        #sys.stdout.write(f'Retrieving nr {nr:3d} of {total}\r')
         # sys.stdout.flush()
 
     def write_to_file(self, pricedata: list[CoinPriceData], output_csv: str, output_xls: str, suffix: str):
@@ -85,18 +84,18 @@ class CoinPrice(ABC):
             outputpath = outputpath + '\\'
 
         if output_csv is not None:
-            filepath = Path('%s%s%s.csv' % (outputpath, output_csv, suffix))
+            filepath = Path('{outputpath}{output_csv}{suffix}.csv')
             filepath.parent.mkdir(parents=True, exist_ok=True)
             df.to_csv(filepath)
-            print('File written: %s' % (filepath))
+            print(f'File written: {filepath}')
 
         if output_xls is not None:
             # remove timezone, because excel cannot handle this
             df['date'] = helperfunc.remove_tz(df['date'])
-            filepath = Path('%s%s%s.xlsx' % (outputpath, output_xls, suffix))
+            filepath = Path(f'{outputpath}{output_xls}{suffix}.xlsx')
             filepath.parent.mkdir(parents=True, exist_ok=True)
             df.to_excel(filepath)
-            print('File written: %s' % (filepath))
+            print(f'File written: {filepath}')
 
     def print_coinpricedata(self, pricedata: list[CoinPriceData]) -> None:
         """Print price data to output

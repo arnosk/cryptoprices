@@ -54,8 +54,7 @@ class CoinSearchCoingecko(CoinSearch):
         coin = search data with retrieved coin info from web
         return value = rowcount or total changes 
         """
-        query = 'INSERT INTO {} (siteid, name, symbol) ' \
-                'VALUES(?,?,?)'.format(self.table_name)
+        query = f'INSERT INTO {self.table_name} (siteid, name, symbol) VALUES(?,?,?)'
         args = (coin.coin.siteid,
                 coin.coin.name,
                 coin.coin.symbol)
@@ -86,24 +85,24 @@ class CoinSearchCoingecko(CoinSearch):
         db = instance of Db
         """
         # Get all coingeckoid's from database
-        coins = db.query('SELECT siteid FROM {}'.format(self.table_name))
+        coins = db.query(f'SELECT siteid FROM {self.table_name}')
         coins = [i[0] for i in coins]
 
         # Retrieve coin info from coingecko
-        for c in coins:
-            url = '''{}/coins/{}?
+        for coin in coins:
+            url = f'''{config.COINGECKO_URL}/coins/{coin}?
                     localization=false&
                     tickers=false&
                     market_data=false&
                     community_data=false&
                     developer_data=false&
                     sparkline=false
-                '''.format(config.COINGECKO_URL, c)
+                '''
             resp = self.req.get_request_response(url)
             params_image = resp['image']
 
             # Save image files
-            self.save_images(params_image, c)
+            self.save_images(params_image, coin)
 
     def search_id_assets(self, search_str: str, assets) -> list[CoinSearchData]:
         """Search for coin in list of all assets
@@ -151,7 +150,7 @@ class CoinSearchCoingecko(CoinSearch):
         search_str = string to search in assets
         return value = list with search results
         """
-        url = '{}/search?query={}'.format(config.COINGECKO_URL, search_str)
+        url = f'{config.COINGECKO_URL}/search?query={search_str}'
         resp = self.req.get_request_response(url)
         coinsearch = self.convert_websearch_to_coinsearchdata(resp['coins'])
         return coinsearch
@@ -190,11 +189,11 @@ class CoinSearchCoingecko(CoinSearch):
         return value = query for database search with 
                        ? is used for the search item
         """
-        coin_search_query = '''SELECT siteid, name, symbol FROM {} WHERE
+        coin_search_query = f'''SELECT siteid, name, symbol FROM {self.table_name} WHERE
                                 siteid like ? or
                                 name like ? or
                                 symbol like ?
-                            '''.format(self.table_name)
+                            '''
         return coin_search_query
 
     def search(self, db: Db, coin_search: str, assets: list = []):
@@ -239,8 +238,7 @@ class CoinSearchCoingecko(CoinSearch):
             },...
         }
         """
-        url_list = '{}/coins/list?include_platform=true'.format(
-            config.COINGECKO_URL)
+        url_list = f'{config.COINGECKO_URL}/coins/list?include_platform=true'
         resp = self.req.get_request_response(url_list)
         assets = resp['result']
         return assets

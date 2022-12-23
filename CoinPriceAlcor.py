@@ -47,7 +47,7 @@ class CoinPriceAlcor(CoinPrice):
         # get all market data for each chain from Alcor site
         prices: list[CoinPriceData] = []
         for key_chain, val_coins in coin_srch.items():
-            url = config.ALCOR_URL.replace('?', key_chain) + '/markets'
+            url = f'{config.ALCOR_URL.replace("?", key_chain)}/markets'
             resp = self.req.get_request_response(url)
 
             # search through result for coin in the dict
@@ -132,8 +132,7 @@ class CoinPriceAlcor(CoinPrice):
         return CoinPriceData
         """
         params_try = copy.deepcopy(params)
-        url = config.ALCOR_URL.replace(
-            '?', coin.chain) + '/markets/{}/charts'.format(coin.siteid)
+        url = f'{config.ALCOR_URL.replace("?", coin.chain)}/markets/{coin.siteid}/charts'
 
         date = dt
         coin_base = self.markets[coin.siteid].curr
@@ -214,7 +213,7 @@ def __main__():
         coins = [[chain, i] for i in coins]
     elif db_table_exist:
         coins = db.query(
-            'SELECT chain, siteid, quote, base FROM {}'.format(cp.table_name))
+            f'SELECT chain, siteid, quote, base FROM {cp.table_name}')
         coin_data = [CoinData(chain=i[0], siteid=i[1], name=i[2])
                      for i in coins]  # symbol=i[3] = base???
         coins = [[i[0], i[1], i[2], i[3]] for i in coins]
@@ -227,14 +226,14 @@ def __main__():
     price = cp.get_price_current(coin_data)
     cp.print_coinpricedata(price)
     cp.write_to_file(price, output_csv, output_xls,
-                     '_current_coins_%s' % (current_date))
+                     f'_current_coins_{current_date}')
     print()
 
     print('* History price of coins via market_chart')
     price = cp.get_price_hist_marketchart(coin_data, date)
     cp.print_coinpricedata(price)
     cp.write_to_file(price, output_csv, output_xls,
-                     '_hist_marketchart_%s' % (date))
+                     f'_hist_marketchart_{date}')
     print()
 
 

@@ -133,7 +133,7 @@ class RequestHelper():
                 if type(value) == bool:
                     value = str(value).lower()
 
-                url += '{0}={1}&'.format(key, value)
+                url += f'{key}={value}&'
             url = url[:-1]
         return url
 
@@ -145,9 +145,9 @@ class RequestHelper():
         sleeping_time = total time to sleep in seconds
         """
         print()
-        print('Retrying in %s s' % (sleeping_time))
+        print(f'Retrying in {sleeping_time} s')
         for i in range(sleeping_time, 0, -1):
-            print('\r{:3d} seconds remaining.'.format(i), end='', flush=True)
+            print(f'\r{i:3d} seconds remaining.', end='', flush=True)
             time.sleep(1)
         print()
 

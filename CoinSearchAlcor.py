@@ -33,8 +33,7 @@ class CoinSearchAlcor(CoinSearch):
         coin = search data with retrieved coin info from web
         return value = rowcount or total changes 
         """
-        query = 'INSERT INTO {} (siteid, base, quote, chain) ' \
-                'VALUES(?,?,?,?)'.format(self.table_name)
+        query = f'INSERT INTO {self.table_name} (siteid, base, quote, chain) VALUES(?,?,?,?)'
         args = (coin.coin.siteid,
                 coin.coin.base,
                 coin.coin.name,  # = quote
@@ -98,13 +97,13 @@ class CoinSearchAlcor(CoinSearch):
                        ? is used for the search item
         """
         # Sqlite use INSTR, other databases use CHARINDEX('@',quote,0) ??
-        coin_search_query = '''SELECT siteid, quote, 
+        coin_search_query = f'''SELECT siteid, quote, 
                                     SUBSTRING(quote,0,INSTR(quote,'@')) AS symbol, 
                                     chain, base 
-                                FROM {} WHERE
+                                FROM {self.table_name} WHERE
                                     base like ? or
                                     quote like ?
-                            '''.format(self.table_name)
+                            '''
         return coin_search_query
 
     def search(self, db: Db, coin_search: str, assets: dict):
@@ -142,7 +141,7 @@ class CoinSearchAlcor(CoinSearch):
         '''
         coin_assets = {}
         for chain in chains:
-            url_list = config.ALCOR_URL.replace('?', chain) + '/markets'
+            url_list = f'{config.ALCOR_URL.replace("?", chain)}/markets'
             resp = self.req.get_request_response(url_list)
             coin_assets[chain] = resp['result']
         return coin_assets

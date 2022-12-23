@@ -63,7 +63,7 @@ class CoinPriceCryptowatch(CoinPrice):
         """
         markets: list[CoinMarketData] = []
         for coin in coindata:
-            url = config.CRYPTOWATCH_URL + '/assets/' + coin.symbol
+            url = f'{config.CRYPTOWATCH_URL}/assets/{coin.symbol}'
             resp = self.req.get_request_response(url)
 
             if resp['status_code'] == 200:
@@ -162,7 +162,7 @@ class CoinPriceCryptowatch(CoinPrice):
             self.show_progress(i, len(self.markets))
 
             if market.error == '':
-                url_list = market.route + '/summary'
+                url_list = f'{market.route}/summary'
                 resp = self.req.get_request_response(url_list)
 
                 # check for correct result
@@ -264,7 +264,7 @@ class CoinPriceCryptowatch(CoinPrice):
         return CoinPriceData
         """
         params_try = copy.deepcopy(params)
-        url = market.route + '/ohlc'
+        url = f'{market.route}/ohlc'
 
         date = dt
         coin = market.coin
@@ -390,8 +390,7 @@ def __main__():
         coins = re.split('[;,]', coin_str)
         coin_data = [CoinData(siteid=i, symbol=i) for i in coins]
     elif db_table_exist:
-        coins = db.query('SELECT siteid, name, symbol FROM {}'.format(
-            cp.table_name))
+        coins = db.query(f'SELECT siteid, name, symbol FROM {cp.table_name}')
         coin_data = [CoinData(siteid=i[0], name=i[1], symbol=i[2])
                      for i in coins]
         coins = [i[2] for i in coins]
@@ -406,7 +405,7 @@ def __main__():
     price = cp.filter_marketpair_on_volume(price, max_markets_per_pair)
     cp.print_coinpricedata(price)
     cp.write_to_file(price, output_csv, output_xls,
-                     '_current_coins_%s' % (current_date))
+                     f'_current_coins_{current_date}')
     print()
 
     print('* History price of coins via market_chart')
@@ -414,7 +413,7 @@ def __main__():
     price = cp.filter_marketpair_on_volume(price, max_markets_per_pair)
     cp.print_coinpricedata(price)
     cp.write_to_file(price, output_csv, output_xls,
-                     '_hist_marketchart_%s' % (date))
+                     f'_hist_marketchart_{date}')
     print()
 
 

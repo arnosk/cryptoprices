@@ -28,29 +28,29 @@ def create_table(Db: Db, table_name: str):
     primary_key = Db.get_create_primary_key_str()
     query = ''
     if table_name == DbTableName.coinCoingecko.name:
-        query = '''CREATE TABLE {} (
-                    id {},
+        query = f'''CREATE TABLE {table_name} (
+                    id {primary_key},
                     siteid VARCHAR(80) NOT NULL,
                     name VARCHAR(80) NOT NULL,
                     symbol VARCHAR(40) NOT NULL
                     )
-                '''.format(table_name, primary_key)
+                '''
     elif table_name == DbTableName.coinCryptowatch.name:
-        query = '''CREATE TABLE {} (
-                    id {},
+        query = f'''CREATE TABLE {table_name} (
+                    id {primary_key},
                     siteid VARCHAR(80) NOT NULL,
                     name VARCHAR(80) NOT NULL,
                     symbol VARCHAR(40) NOT NULL
                     )
-                '''.format(table_name, primary_key)
+                '''
     elif table_name == DbTableName.coinAlcor.name:
-        query = '''CREATE TABLE {} (
-                    id {},
+        query = f'''CREATE TABLE {table_name} (
+                    id {primary_key},
                     chain VARCHAR(20) NOT NULL,
                     siteid INT NOT NULL,
                     base VARCHAR(80) NOT NULL,
                     quote VARCHAR(80) NOT NULL
                     )
-                '''.format(table_name, primary_key)
+                '''
 
     Db.execute(query)

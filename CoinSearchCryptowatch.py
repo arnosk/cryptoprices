@@ -36,8 +36,7 @@ class CoinSearchCryptowatch(CoinSearch):
         coin = search data with retrieved coin info from web
         return value = rowcount or total changes 
         """
-        query = 'INSERT INTO {} (siteid, name, symbol) ' \
-                'VALUES(?,?,?)'.format(self.table_name)
+        query = f'INSERT INTO {self.table_name} (siteid, name, symbol) VALUES(?,?,?)'
         args = (coin.coin.siteid,
                 coin.coin.name,
                 coin.coin.symbol)
@@ -91,11 +90,11 @@ class CoinSearchCryptowatch(CoinSearch):
         return value = query for database search with 
                        ? is used for the search item
         """
-        coin_search_query = '''SELECT siteid, name, symbol FROM {} WHERE
+        coin_search_query = f'''SELECT siteid, name, symbol FROM {self.table_name} WHERE
                                 siteid like ? or
                                 name like ? or
                                 symbol like ?
-                            '''.format(self.table_name)
+                            '''
         return coin_search_query
 
     def search(self, db: Db, coin_search: str, assets: list):
@@ -129,7 +128,7 @@ class CoinSearchCryptowatch(CoinSearch):
 
         returns = a list of string with assets from Alcor
         '''
-        url_list = config.CRYPTOWATCH_URL + '/assets'
+        url_list = f'{config.CRYPTOWATCH_URL}/assets'
         resp = self.req.get_request_response(url_list)
         coin_assets = resp['result']
         return coin_assets
