@@ -148,8 +148,7 @@ class CoinSearch(ABC):
                 DbHelper.insert_website(db, self.website)
                 self.website_id = DbHelper.get_website_id(db, self.website)
 
-            db_result = db.query(f'SELECT * FROM {DbTableName.coin.name} WHERE siteid=? AND website_id=?',
-                                 (coin_id, self.website_id))
+            db_result = DbHelper.get_coin(db, coin_id, self.website_id)
             if len(db_result):
                 print(f'Database already has a row with the coin {coin_name}')
             else:

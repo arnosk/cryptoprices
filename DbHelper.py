@@ -93,3 +93,12 @@ def insert_coin(db: Db, coin: CoinData, website_id: int) -> int:
     res = db.execute(query, args)
     db.commit()
     return res
+
+
+def get_coin(db: Db, siteid: str, website_id: int) -> list:
+    """Retrieves the coin from id 
+    """
+    query = f'SELECT * FROM {DbTableName.coin.name} WHERE siteid=? AND website_id=?'
+    args = (siteid, website_id)
+    res = db.query(query, args)
+    return res
