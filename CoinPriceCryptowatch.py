@@ -41,105 +41,6 @@ class CoinPriceCryptowatch(CoinPrice):
         # Update header of request session with user API key
         self.req.update_header({'X-CW-API-Key': config.CRYPTOWATCH_API})
 
-    def show_allowance(self, allowance):
-        """Show allowance data to standard output on same row
-        """
-        allowance_str = json.dumps(allowance)[1:50]
-        print('\r'+allowance_str.rjust(80), end='', flush=True)
-
-    def get_markets(self, coindata: list[CoinData], currencies: list[str], strictness=0) -> list[CoinMarketData]:
-        """Get cryptowatch markets for chosen coins
-
-        strictness = strictly (0), loose (1) or very loose (2) search for base
-                    0: strictly is base exactly equals currency
-                    1: loose is base contains currency with 1 extra char in front and/or at the end
-                    2: very loose is base contains currency
-
-        NOT Doing this anymore: if coin does not exist as base, try as quote
-
-        coindata = list of CoinData for market base
-        currencies = list of strings with assets for market quote
-
-        returns list of CoinMarketData
-        """
-        markets: list[CoinMarketData] = []
-        for coin in coindata:
-            url = f'{config.CRYPTOWATCH_URL}/assets/{coin.symbol}'
-            resp = self.req.get_request_response(url)
-
-            if resp['status_code'] == 200:
-                resp_markets = resp['result']['markets']
-
-                # check if base or quote exists in result
-                if 'base' in resp_markets:
-                    res = resp_markets['base']
-
-                    # filter active pairs
-                    res = list(filter(lambda r: r['active'] == True, res))
-
-                    if strictness == 0:
-                        # Strict/Exact filter only quote from currencies
-                        res_filter = list(
-                            filter(lambda r: r['pair'].replace(coin.symbol, '') in currencies, res))
-                        # filter(lambda r: r['curr'] in currencies, res))
-
-                        # check if markets are found, else don't filter
-                        if len(res_filter) > 0:
-                            res = res_filter
-
-                    if strictness >= 1:
-                        # Loose filter only quote from currencies
-                        res_filter = []
-                        for c in currencies:
-                            if strictness == 1:
-                                # Loose (quote can have 0 or 1 character before and/or after given currency)
-                                res_curr = list(filter(lambda r: re.match(
-                                    '^'+coin.symbol+'\\w?'+c+'\\w?$', r['pair']), res))
-                            else:
-                                # Very Loose (quote must contain given currency)
-                                res_curr = list(
-                                    filter(lambda r: c in r['pair'], res))
-                            res_filter.extend(res_curr)
-                        res = res_filter
-
-                    for r in res:
-                        markets.append(CoinMarketData(
-                            coin=coin,
-                            curr=r['pair'].replace(coin.symbol, ''),
-                            exchange=r['exchange'],
-                            active=r['active'],
-                            pair=r['pair'],
-                            route=r['route']))
-
-                else:
-                    markets.append(CoinMarketData(
-                        coin=coin,
-                        curr='not data found',
-                        active=False,
-                        error='not data found'))
-
-            else:
-                markets.append(CoinMarketData(
-                    coin=coin,
-                    curr='error',
-                    active=False,
-                    error=resp['error']))
-
-        return markets
-
-    def print_markets(self) -> None:
-        """Print cryptowatch markets
-        """
-        print()
-        if self.coindataid == 0:
-            print('No market data loaded\n')
-            return
-        print('* Available markets of coins')
-        resdf = pd.DataFrame(self.markets)
-        resdf_print = resdf.drop('route', axis=1)
-        print(resdf_print)
-        print()
-
     def get_price_current(self, coindata: list[CoinData], currencies: list[str]) -> list[CoinPriceData]:
         """Get Cryptowatch current price
 
@@ -234,25 +135,6 @@ class CoinPriceCryptowatch(CoinPrice):
 
         return prices
 
-    def search_price_minimal_timediff(self, prices, ts: int, ms: bool = False):
-        """Search for record in price data with the smallest time difference
-
-        prices = results from request with price data
-        ts = timestamp in sec if ms = False
-        ts = timestamp in msec if ms = True
-
-        result = record with smallest time difference with ts
-        """
-        timediff_minimal = 10**20
-        price_minimal = []
-        ts = ts*1000 if ms == True else ts
-        for price in prices:
-            timediff = abs(ts - price[0])
-            if timediff < timediff_minimal:
-                timediff_minimal = timediff
-                price_minimal = price
-        return price_minimal
-
     def get_pricedata_hist_marketchart_retry(self, market: CoinMarketData, dt, ts, params) -> CoinPriceData:
         """Get history price data for one coin from and to specific date
 
@@ -310,6 +192,25 @@ class CoinPriceCryptowatch(CoinPrice):
 
         return CoinPriceData(date=date, coin=coin, curr=curr, exchange=exchange, price=price, volume=volume, active=active, error=error)
 
+    def search_price_minimal_timediff(self, prices, ts: int, ms: bool = False):
+        """Search for record in price data with the smallest time difference
+
+        prices = results from request with price data
+        ts = timestamp in sec if ms = False
+        ts = timestamp in msec if ms = True
+
+        result = record with smallest time difference with ts
+        """
+        timediff_minimal = 10**20
+        price_minimal = []
+        ts = ts*1000 if ms == True else ts
+        for price in prices:
+            timediff = abs(ts - price[0])
+            if timediff < timediff_minimal:
+                timediff_minimal = timediff
+                price_minimal = price
+        return price_minimal
+
     def filter_marketpair_on_volume(self, prices: list[CoinPriceData], max_markets_per_pair: int) -> list[CoinPriceData]:
         """Filter the price data with same market pair. 
 
@@ -345,6 +246,105 @@ class CoinPriceCryptowatch(CoinPrice):
                 new_prices.append(val_prices_sorted[i])
 
         return new_prices
+
+    def get_markets(self, coindata: list[CoinData], currencies: list[str], strictness=0) -> list[CoinMarketData]:
+        """Get cryptowatch markets for chosen coins
+
+        strictness = strictly (0), loose (1) or very loose (2) search for base
+                    0: strictly is base exactly equals currency
+                    1: loose is base contains currency with 1 extra char in front and/or at the end
+                    2: very loose is base contains currency
+
+        NOT Doing this anymore: if coin does not exist as base, try as quote
+
+        coindata = list of CoinData for market base
+        currencies = list of strings with assets for market quote
+
+        returns list of CoinMarketData
+        """
+        markets: list[CoinMarketData] = []
+        for coin in coindata:
+            url = f'{config.CRYPTOWATCH_URL}/assets/{coin.symbol}'
+            resp = self.req.get_request_response(url)
+
+            if resp['status_code'] == 200:
+                resp_markets = resp['result']['markets']
+
+                # check if base or quote exists in result
+                if 'base' in resp_markets:
+                    res = resp_markets['base']
+
+                    # filter active pairs
+                    res = list(filter(lambda r: r['active'] == True, res))
+
+                    if strictness == 0:
+                        # Strict/Exact filter only quote from currencies
+                        res_filter = list(
+                            filter(lambda r: r['pair'].replace(coin.symbol, '') in currencies, res))
+                        # filter(lambda r: r['curr'] in currencies, res))
+
+                        # check if markets are found, else don't filter
+                        if len(res_filter) > 0:
+                            res = res_filter
+
+                    if strictness >= 1:
+                        # Loose filter only quote from currencies
+                        res_filter = []
+                        for c in currencies:
+                            if strictness == 1:
+                                # Loose (quote can have 0 or 1 character before and/or after given currency)
+                                res_curr = list(filter(lambda r: re.match(
+                                    '^'+coin.symbol+'\\w?'+c+'\\w?$', r['pair']), res))
+                            else:
+                                # Very Loose (quote must contain given currency)
+                                res_curr = list(
+                                    filter(lambda r: c in r['pair'], res))
+                            res_filter.extend(res_curr)
+                        res = res_filter
+
+                    for r in res:
+                        markets.append(CoinMarketData(
+                            coin=coin,
+                            curr=r['pair'].replace(coin.symbol, ''),
+                            exchange=r['exchange'],
+                            active=r['active'],
+                            pair=r['pair'],
+                            route=r['route']))
+
+                else:
+                    markets.append(CoinMarketData(
+                        coin=coin,
+                        curr='not data found',
+                        active=False,
+                        error='not data found'))
+
+            else:
+                markets.append(CoinMarketData(
+                    coin=coin,
+                    curr='error',
+                    active=False,
+                    error=resp['error']))
+
+        return markets
+
+    def print_markets(self) -> None:
+        """Print cryptowatch markets
+        """
+        print()
+        if self.coindataid == 0:
+            print('No market data loaded\n')
+            return
+        print('* Available markets of coins')
+        resdf = pd.DataFrame(self.markets)
+        resdf_print = resdf.drop('route', axis=1)
+        print(resdf_print)
+        print()
+
+    def show_allowance(self, allowance):
+        """Show allowance data to standard output on same row
+        """
+        allowance_str = json.dumps(allowance)[1:50]
+        print('\r'+allowance_str.rjust(80), end='', flush=True)
 
 
 def __main__():

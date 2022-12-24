@@ -105,25 +105,6 @@ class CoinPriceAlcor(CoinPrice):
 
         return prices
 
-    def search_price_minimal_timediff(self, prices, ts: int, ms: bool = False):
-        """Search for record in price data with the smallest time difference
-
-        prices = results from request with price data
-        ts = timestamp in sec if ms = False
-        ts = timestamp in msec if ms = True
-
-        result = record with smallest time difference with ts
-        """
-        timediff_minimal = 10**20
-        price_minimal = {}
-        ts = ts*1000 if ms == True else ts
-        for price in prices:
-            timediff = abs(ts - price['time'])
-            if timediff < timediff_minimal:
-                timediff_minimal = timediff
-                price_minimal = price
-        return price_minimal
-
     def get_pricedata_hist_marketchart_retry(self, coin: CoinData, dt, ts, params) -> CoinPriceData:
         """Get history price data for one coin from and to specific date
 
@@ -173,6 +154,25 @@ class CoinPriceAlcor(CoinPrice):
                     break
 
         return CoinPriceData(date=date, coin=coin, curr=coin_base, price=price, volume=volume, error=error)
+
+    def search_price_minimal_timediff(self, prices, ts: int, ms: bool = False):
+        """Search for record in price data with the smallest time difference
+
+        prices = results from request with price data
+        ts = timestamp in sec if ms = False
+        ts = timestamp in msec if ms = True
+
+        result = record with smallest time difference with ts
+        """
+        timediff_minimal = 10**20
+        price_minimal = {}
+        ts = ts*1000 if ms == True else ts
+        for price in prices:
+            timediff = abs(ts - price['time'])
+            if timediff < timediff_minimal:
+                timediff_minimal = timediff
+                price_minimal = price
+        return price_minimal
 
 
 def __main__():

@@ -221,27 +221,6 @@ class CoinPriceCoingecko(CoinPrice):
 
         return prices
 
-    def search_price_minimal_timediff(self, prices, ts: int, ms: bool = False) -> int:
-        """Search for record in price data with the smallest time difference
-
-        prices = results from request with price data
-        ts = timestamp in sec if ms = False
-        ts = timestamp in msec if ms = True
-
-        result = index of record with smallest time difference with ts
-        """
-        timediff_minimal = 10**20
-        price_index = 0
-        index = 0
-        ts = ts*1000 if ms == True else ts
-        for price in prices:
-            timediff = abs(ts - price[0])
-            if timediff < timediff_minimal:
-                timediff_minimal = timediff
-                price_index = index
-            index += 1
-        return price_index
-
     def get_pricedata_hist_marketchart_retry(self, coin: CoinData, dt, ts, params, currency, chain: str = 'none') -> CoinPriceData:
         """Get history price data for one coin from and to specific date
 
@@ -294,6 +273,27 @@ class CoinPriceCoingecko(CoinPrice):
                     break
 
         return CoinPriceData(date=date, coin=coin, curr=currency, price=price, volume=volume, error=error)
+
+    def search_price_minimal_timediff(self, prices, ts: int, ms: bool = False) -> int:
+        """Search for record in price data with the smallest time difference
+
+        prices = results from request with price data
+        ts = timestamp in sec if ms = False
+        ts = timestamp in msec if ms = True
+
+        result = index of record with smallest time difference with ts
+        """
+        timediff_minimal = 10**20
+        price_index = 0
+        index = 0
+        ts = ts*1000 if ms == True else ts
+        for price in prices:
+            timediff = abs(ts - price[0])
+            if timediff < timediff_minimal:
+                timediff_minimal = timediff
+                price_index = index
+            index += 1
+        return price_index
 
 
 def __main__():
