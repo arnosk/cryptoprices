@@ -43,18 +43,6 @@ class CoinSearch(ABC):
         self.req = RequestHelper()
 
     @abstractmethod
-    def insert_coin(self, db: Db, coin: CoinSearchData) -> int:
-        """Insert coin in database
-
-        Insert a new coin to the coins table
-        And download the thumb and large picture of the coin
-
-        db = instance of Db
-        coin = search data with retrieved coin info from web
-        """
-        pass
-
-    @abstractmethod
     def search(self, db: Db, coin_search: str, assets: dict):
         """Searching coins on exchange
 
@@ -166,7 +154,8 @@ class CoinSearch(ABC):
                 print(f'Database already has a row with the coin {coin_name}')
             else:
                 # add new row to table coins
-                insert_result = self.insert_coin(db, coin)
+                insert_result = DbHelper.insert_coin(
+                    db, coin.coin, self.website_id)
                 if insert_result > 0:
                     print(f'{coin_name} added to the database')
 

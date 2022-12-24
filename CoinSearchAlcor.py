@@ -26,24 +26,6 @@ class CoinSearchAlcor(CoinSearch):
         self.website = DbWebsiteName.alcor.name
         super().__init__()
 
-    def insert_coin(self, db: Db, coin: CoinSearchData) -> int:
-        """Insert a new coin to the coins table
-
-        db = instance of Db
-        coin = search data with retrieved coin info from web
-        return value = rowcount or total changes 
-        """
-        query = f'INSERT INTO {DbTableName.coin.name} (website_id, siteid, name, symbol, chain, base) VALUES(?,?,?,?,?,?)'
-        args = (self.website_id,
-                coin.coin.siteid,
-                coin.coin.name,  # = quote
-                coin.coin.symbol,  # = quote symbol
-                coin.coin.chain,
-                coin.coin.base)
-        res = db.execute(query, args)
-        db.commit()
-        return res
-
     def search_id_assets(self, search_str: str, assets) -> list[CoinSearchData]:
         """Search for coin in list of all assets
 

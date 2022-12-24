@@ -8,6 +8,7 @@ Database Helper function to create tables
 """
 from enum import Enum, auto
 
+from CoinData import CoinData
 from Db import Db
 
 
@@ -73,3 +74,22 @@ def get_website_id(db: Db, website: str) -> int:
         return res[0][0]
     else:
         return 0
+
+
+def insert_coin(db: Db, coin: CoinData, website_id: int) -> int:
+    """Insert a new coin to the coins table
+
+    db = instance of Db
+    coin = search data with retrieved coin info from web
+    return value = rowcount or total changes 
+    """
+    query = f'INSERT INTO {DbTableName.coin.name} (website_id, siteid, name, symbol, chain, base) VALUES(?,?,?,?,?,?)'
+    args = (website_id,
+            coin.siteid,
+            coin.name,  # also quote
+            coin.symbol,  # also quote symbol
+            coin.chain,
+            coin.base)
+    res = db.execute(query, args)
+    db.commit()
+    return res
