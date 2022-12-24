@@ -102,3 +102,20 @@ def get_coin(db: Db, siteid: str, website_id: int) -> list:
     args = (siteid, website_id)
     res = db.query(query, args)
     return res
+
+
+def get_coins(db: Db, search: str, website_id: int) -> list:
+    """Retrieves coins from search string
+    """
+    query = f'''SELECT siteid, name, symbol, chain, base FROM {DbTableName.coin.name} WHERE
+                website_id = {website_id} AND
+                (siteid like ? or
+                name like ? or
+                symbol like ? or
+                base like ?
+                )
+            '''
+    n = query.count('?')
+    args = (f'%{search}%',)*n
+    res = db.query(query, args)
+    return res

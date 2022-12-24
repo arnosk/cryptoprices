@@ -69,34 +69,18 @@ class CoinSearch(ABC):
         """
         pass
 
-    def search_id_db(self, db: Db, coin_search: str) -> list[CoinData]:
+    def search_id_db(self, db: Db, search: str) -> list[CoinData]:
         """Search for coin in database
 
         db = database
-        coin_search = coin name to be searched
+        search = coin name to be searched
         return value = list with search results
         """
         coindata = []
         if db.check_table(DbTableName.coin.name):
             self.website_id = DbHelper.get_website_id(db, self.website)
             if self.website_id > 0:
-                coin_search_str = f'%{coin_search}%'
-                coin_search_query = f'''SELECT siteid, name, symbol, chain, base FROM {DbTableName.coin.name} WHERE
-                                        website_id = {self.website_id} AND
-                                        (siteid like ? or
-                                        name like ? or
-                                        symbol like ? or
-                                        base like ?
-                                        )
-                                    '''
-
-                # Create params tuple of n search items
-                n = coin_search_query.count('?')
-                params = (coin_search_str,)*n
-
-                db_result = db.query(coin_search_query, params)
-                print(db_result)
-                print(type(db_result))
+                db_result = DbHelper.get_coins(db, search, self.website_id)
                 coindata = [CoinData(*x) for x in db_result]
         return coindata
 
