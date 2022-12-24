@@ -73,15 +73,6 @@ class CoinSearch(ABC):
         """
         pass
 
-    @abstractmethod
-    def get_search_id_db_query(self) -> str:
-        """Query for searching coin in database
-
-        return value = query for database search with 
-                       ? is used for the search item
-        """
-        pass
-
     def save_images(self, image_urls: dict, coin_name: str):
         """Save image files for one coin
 
@@ -102,7 +93,14 @@ class CoinSearch(ABC):
             self.website_id = DbHelper.get_website_id(db, self.website)
             if self.website_id > 0:
                 coin_search_str = f'%{coin_search}%'
-                coin_search_query = self.get_search_id_db_query()
+                coin_search_query = f'''SELECT siteid, name, symbol, chain, base FROM {DbTableName.coin.name} WHERE
+                                        website_id = {self.website_id} AND
+                                        (siteid like ? or
+                                        name like ? or
+                                        symbol like ? or
+                                        base like ?
+                                        )
+                                    '''
 
                 # Create params tuple of n search items
                 n = coin_search_query.count('?')

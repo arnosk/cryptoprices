@@ -92,23 +92,6 @@ class CoinSearchAlcor(CoinSearch):
                                              change=r['changeWeek']))
         return coinsearch
 
-    def get_search_id_db_query(self) -> str:
-        """Query for searching coin in database
-
-        return value = query for database search with 
-                       ? is used for the search item
-        """
-        # Sqlite use INSTR, other databases use CHARINDEX('@',quote,0) ??
-        coin_search_query = f'''SELECT siteid, name, symbol, chain, base FROM {DbTableName.coin.name} WHERE
-                                website_id = {self.website_id} AND
-                                (siteid like ? or
-                                 name like ? or
-                                 symbol like ? or
-                                 base like ?
-                                )
-                            '''
-        return coin_search_query
-
     def search(self, db: Db, coin_search: str, assets: dict):
         """Search coins in own database (if table exists)
 
