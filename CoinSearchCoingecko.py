@@ -46,24 +46,6 @@ class CoinSearchCoingecko(CoinSearch):
         self.website = DbWebsiteName.coingecko.name
         super().__init__()
 
-    def insert_coin(self, db: Db, coin: CoinSearchData) -> int:
-        """Insert a new coin to the coins table
-
-        And download the thumb and large picture of the coin
-
-        db = instance of Db
-        coin = search data with retrieved coin info from web
-        return value = rowcount or total changes 
-        """
-        query = f'INSERT INTO {DbTableName.coin.name} (website_id, siteid, name, symbol) VALUES(?,?,?,?)'
-        args = (self.website_id,
-                coin.coin.siteid,
-                coin.coin.name,
-                coin.coin.symbol)
-        res = db.execute(query, args)
-        db.commit()
-        return res
-
     def save_images(self, image_urls: dict, coin_name: str):
         """Save image files for one coin
 
