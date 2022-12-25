@@ -10,6 +10,7 @@ import shlex
 import sys
 from abc import ABC, abstractmethod
 from dataclasses import asdict, dataclass
+from enum import Enum, auto
 from typing import List
 
 import pandas as pd
@@ -31,6 +32,13 @@ class Command:
     def __post_init__(self):
         self.command = self.command.lower()
         self.arguments = [x.lower() for x in self.arguments]
+
+
+class SearchMethod(Enum):
+    """Class for enumerating search methods
+    """
+    assets = auto()
+    web = auto()
 
 
 class CoinSearch(ABC):

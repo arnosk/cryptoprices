@@ -10,6 +10,7 @@ import argparse
 import re
 
 import config
+import helperfunc
 from CoinData import CoinData, CoinSearchData
 from CoinSearch import CoinSearch
 from Db import Db
@@ -24,9 +25,11 @@ class CoinSearchAlcor(CoinSearch):
 
     def __init__(self) -> None:
         self.website = DbWebsiteName.alcor.name
+        self.assets: dict = {}
+        self.id_assets: int = 0
         super().__init__()
 
-    def search_id_assets(self, search_str: str, assets) -> list[CoinSearchData]:
+    def search_id_assets(self, search_str: str) -> list[CoinSearchData]:
         """Search for coin in list of all assets
 
         search_str: str = string to search in assets
@@ -35,7 +38,7 @@ class CoinSearchAlcor(CoinSearch):
         """
         s = search_str.lower()
         resp_coins = []
-        for asset in assets.values():
+        for asset in self.assets.values():
             resp_coin = [item for item in asset
                          if (re.match(s, item['base_token']['symbol']['name'].lower()) or
                              re.search(s, item['base_token']['str'].lower()) or
@@ -74,7 +77,7 @@ class CoinSearchAlcor(CoinSearch):
                                              change=r['changeWeek']))
         return coinsearch
 
-    def search(self, db: Db, coin_search: str, assets: dict):
+    def search(self, db: Db, coin_search: str, chains: list):
         """Search coins in own database (if table exists)
 
         Show the results
@@ -87,14 +90,22 @@ class CoinSearchAlcor(CoinSearch):
 
         db = instance of Db
         coin_search = string to search in assets
-        assets = dictionary where each key is a chain with a list of string with assets from Alcor
+        chains = list of the alcor chains to search on
+        self.assets = dictionary where each key is a chain with a list of string with assets from Alcor
         """
+        # check if assets are already loaded for all chains and today
+        id_date = helperfunc.get_date_identifier()
+        if self.id_assets != id(chains) + id_date:
+            print('----------------loading all assets data--------------')
+            self.assets = self.get_all_assets(chains)
+            self.id_assets = id(chains) + id_date
+
         # Check if coin already in database
         db_result = self.search_id_db(db, coin_search)
         self.print_search_result(db_result, 'Database')
 
         # Do search on Alcor assets in memory
-        cs_result = self.search_id_assets(coin_search, assets)
+        cs_result = self.search_id_assets(coin_search)
         self.print_search_result(cs_result, 'Alcor')
 
         # ask user which row is the correct answer
@@ -109,8 +120,8 @@ class CoinSearchAlcor(CoinSearch):
         '''
         coin_assets = {}
         for chain in chains:
-            url_list = f'{config.ALCOR_URL.replace("?", chain)}/markets'
-            resp = self.req.get_request_response(url_list)
+            url = f'{config.ALCOR_URL.replace("?", chain)}/markets'
+            resp = self.req.get_request_response(url)
             coin_assets[chain] = resp['result']
         return coin_assets
 
@@ -149,13 +160,10 @@ def __main__():
     db.check_db()
     db.check_table(DbTableName.coin.name)
 
-    # get all assets from Alcor
-    coin_assets = cs.get_all_assets(chains)
-
-    while coin_assets != None:
+    while True:
         if coin_search == None:
             coin_search = input('Search for coin: ')
-        cs.search(db, coin_search, coin_assets)
+        cs.search(db, coin_search, chains)
         coin_search = None
 
 

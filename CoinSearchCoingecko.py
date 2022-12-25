@@ -31,7 +31,7 @@ import config
 import DbHelper
 import helperfunc
 from CoinData import CoinData, CoinSearchData
-from CoinSearch import CoinSearch
+from CoinSearch import CoinSearch, SearchMethod
 from Db import Db
 from DbHelper import DbTableName, DbWebsiteName
 from DbPostgresql import DbPostgresql
@@ -44,6 +44,8 @@ class CoinSearchCoingecko(CoinSearch):
 
     def __init__(self) -> None:
         self.website = DbWebsiteName.coingecko.name
+        self.assets: list = []
+        self.id_assets: int = 0
         super().__init__()
 
     def save_images(self, image_urls: dict, coin_name: str):
@@ -91,7 +93,7 @@ class CoinSearchCoingecko(CoinSearch):
             # Save image files
             self.save_images(params_image, coin)
 
-    def search_id_assets(self, search_str: str, assets) -> list[CoinSearchData]:
+    def search_id_assets(self, search_str: str) -> list[CoinSearchData]:
         """Search for coin in list of all assets
 
         search_str: str = string to search in assets
@@ -99,7 +101,7 @@ class CoinSearchCoingecko(CoinSearch):
         return value = list with search results
         """
         s = search_str.lower()
-        resp_coins = [item for item in assets
+        resp_coins = [item for item in self.assets
                       if (re.match(s, item['id'].lower()) or
                           re.match(s, item['name'].lower()) or
                           re.match(s, item['symbol'].lower()))]
@@ -170,7 +172,7 @@ class CoinSearchCoingecko(CoinSearch):
                                              image_large=r['large'], ))
         return coinsearch
 
-    def search(self, db: Db, coin_search: str, assets: list = []):
+    def search(self, db: Db, coin_search: str, method: SearchMethod):
         """Search coins in own database (if table exists)
 
         Show the results
@@ -188,9 +190,16 @@ class CoinSearchCoingecko(CoinSearch):
         db_result = self.search_id_db(db, coin_search)
         self.print_search_result(db_result, 'Database')
 
-        if len(assets) > 0:
+        if method == SearchMethod.assets:
+            # check if assets are already loaded for today
+            id_date = helperfunc.get_date_identifier()
+            if self.id_assets != id_date:
+                print('----------------loading all assets data--------------')
+                self.assets = self.get_all_assets()
+                self.id_assets = id_date
+
             # Search through assets
-            cs_result = self.search_id_assets(coin_search, assets)
+            cs_result = self.search_id_assets(coin_search)
         else:
             # Do search on coingecko
             cs_result = self.search_id_web(coin_search)
@@ -235,7 +244,11 @@ def __main__():
     args = argparser.parse_args()
     coin_search = args.coin
     download_all_images = args.image
-    searchweb = args.searchweb
+
+    if args.searchweb:
+        search_method = SearchMethod.web
+    else:
+        search_method = SearchMethod.assets
 
     # init session
     cs = CoinSearchCoingecko()
@@ -249,13 +262,6 @@ def __main__():
     db.check_db()
     db_table_exist = db.check_table(DbTableName.coin.name)
 
-    if searchweb:
-        # search directly from coingecko
-        coin_assets = []
-    else:
-        # get all assets from coingecko
-        coin_assets = cs.get_all_assets()
-
     if download_all_images:
         if db_table_exist:
             cs.download_images(db)
@@ -265,7 +271,7 @@ def __main__():
         while True:
             if coin_search == None:
                 coin_search = input('Search for coin: ')
-            cs.search(db, coin_search, coin_assets)
+            cs.search(db, coin_search, search_method)
             coin_search = None
 
 

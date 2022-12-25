@@ -10,6 +10,7 @@ import argparse
 import re
 
 import config
+import helperfunc
 from CoinData import CoinData, CoinSearchData
 from CoinSearch import CoinSearch
 from Db import Db
@@ -24,12 +25,14 @@ class CoinSearchCryptowatch(CoinSearch):
 
     def __init__(self) -> None:
         self.website = DbWebsiteName.cryptowatch.name
+        self.assets: list = []
+        self.id_assets: int = 0
         super().__init__()
 
         # Update header of request session with user API key
         self.req.update_header({'X-CW-API-Key': config.CRYPTOWATCH_API})
 
-    def search_id_assets(self, search_str: str, assets: list) -> list[CoinSearchData]:
+    def search_id_assets(self, search_str: str) -> list[CoinSearchData]:
         """Search for coin in list of all assets
 
         search_str = string to search in assets
@@ -37,7 +40,7 @@ class CoinSearchCryptowatch(CoinSearch):
         return value = list with search results
         """
         s = search_str.lower()
-        resp_coins = [item for item in assets
+        resp_coins = [item for item in self.assets
                       if (re.match(s, item['sid'].lower()) or
                           re.match(s, item['name'].lower()) or
                           re.match(s, item['symbol'].lower()))]
@@ -69,7 +72,7 @@ class CoinSearchCryptowatch(CoinSearch):
                                              route=r['route']))
         return coinsearch
 
-    def search(self, db: Db, coin_search: str, assets: list):
+    def search(self, db: Db, coin_search: str):
         """Search coins in own database (if table exists)
 
         Show the results
@@ -84,12 +87,19 @@ class CoinSearchCryptowatch(CoinSearch):
         coin_search = string to search in assets
         assets = list of string with assets from Cryptowatch
         """
+        # check if assets are already loaded for today
+        id_date = helperfunc.get_date_identifier()
+        if self.id_assets != id_date:
+            print('----------------loading all assets data--------------')
+            self.assets = self.get_all_assets()
+            self.id_assets = id_date
+
         # Check if coin already in database
         db_result = self.search_id_db(db, coin_search)
         self.print_search_result(db_result, 'Database')
 
         # Do search on cryptowatch assets in memory
-        cs_result = self.search_id_assets(coin_search, assets)
+        cs_result = self.search_id_assets(coin_search)
         self.print_search_result(cs_result, 'CryptoWatch', 'route')
 
         # ask user which row is the correct answer
@@ -130,13 +140,10 @@ def __main__():
     db.check_db()
     db.check_table(DbTableName.coin.name)
 
-    # get all assets from cryptowatch
-    coin_assets = cs.get_all_assets()
-
-    while coin_assets != None:
+    while True:
         if coin_search == None:
             coin_search = input('Search for coin: ')
-        cs.search(db, coin_search, coin_assets)
+        cs.search(db, coin_search)
         coin_search = None
 
 

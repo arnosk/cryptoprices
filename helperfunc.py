@@ -59,3 +59,8 @@ def remove_tz(serie: pd.Series) -> pd.Series:
     because excel cannot handle this timezone
     """
     return serie.apply(lambda d: d if d.tzinfo is None or d.tzinfo.utcoffset(d) is None else pd.to_datetime(d).tz_localize(None))
+
+
+def get_date_identifier() -> int:
+    day_of_year = datetime.now().timetuple().tm_yday
+    return day_of_year

@@ -34,7 +34,7 @@ class CoinPriceCryptowatch(CoinPrice):
     def __init__(self, strictness: int = 0) -> None:
         self.website = DbWebsiteName.cryptowatch.name
         self.markets: list[CoinMarketData] = []
-        self.coindataid: int = 0
+        self.id_coindata: int = 0
         self.strictness: int = strictness
         super().__init__()
 
@@ -49,12 +49,12 @@ class CoinPriceCryptowatch(CoinPrice):
 
         returns list of CoinPriceData
         """
-        # check if markets are already loaded
-        if self.coindataid != id(coindata):
+        # check if markets are already loaded for all coindata
+        if self.id_coindata != id(coindata):
             print('----------------loading market data--------------')
             self.markets = self.get_markets(
                 coindata, currencies, self.strictness)
-            self.coindataid = id(coindata)
+            self.id_coindata = id(coindata)
 
         prices: list[CoinPriceData] = []
         i = 0
@@ -104,12 +104,12 @@ class CoinPriceCryptowatch(CoinPrice):
 
         returns list of CoinPriceData
         """
-        # check if markets are already loaded
-        if self.coindataid != id(coindata):
+        # check if markets are already loaded for all coindata
+        if self.id_coindata != id(coindata):
             print('----------------loading market data--------------')
             self.markets = self.get_markets(
                 coindata, currencies, self.strictness)
-            self.coindataid = id(coindata)
+            self.id_coindata = id(coindata)
 
         # convert date to unix timestamp
         dt = parser.parse(date)  # local time
@@ -331,7 +331,7 @@ class CoinPriceCryptowatch(CoinPrice):
         """Print cryptowatch markets
         """
         print()
-        if self.coindataid == 0:
+        if self.id_coindata == 0:
             print('No market data loaded\n')
             return
         print('* Available markets of coins')
