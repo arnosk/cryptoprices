@@ -57,13 +57,13 @@ class CoinSearchCoingecko(CoinSearch):
         folder = config.IMAGE_PATH
         if 'thumb' in image_urls:
             helperfunc.save_file(
-                image_urls['thumb'], folder, f'coingecko_{coin_name}_thumb')
+                image_urls['thumb'], folder, f'{self.website}_{coin_name}_thumb')
         if 'small' in image_urls:
             helperfunc.save_file(
-                image_urls['small'], folder, f'coingecko_{coin_name}_small')
+                image_urls['small'], folder, f'{self.website}_{coin_name}_small')
         if 'large' in image_urls:
             helperfunc.save_file(
-                image_urls['large'], folder, f'coingecko_{coin_name}_large')
+                image_urls['large'], folder, f'{self.website}_{coin_name}_large')
 
     def download_images(self, db: Db):
         """Download image files for all coins in database from Coingecko
@@ -72,9 +72,7 @@ class CoinSearchCoingecko(CoinSearch):
         """
         # Get all coingeckoid's from database
         self.website_id = DbHelper.get_website_id(db, self.website)
-        coins = db.query(
-            f'SELECT siteid FROM {DbTableName.coin.name} WHERE website_id = ?',
-            (self.website_id,))
+        coins = DbHelper.get_coins(db, '', self.website_id)
         coins = [i[0] for i in coins]
 
         # Retrieve coin info from coingecko
@@ -172,24 +170,12 @@ class CoinSearchCoingecko(CoinSearch):
                                              image_large=r['large'], ))
         return coinsearch
 
-    def search(self, db: Db, coin_search: str, method: SearchMethod):
-        """Search coins in own database (if table exists)
-
-        Show the results
-
-        Search coins from internet (Coingecko)
-        Show the results
-
-        User can select a row number, from the table of search results
-        To add that coin to the coins table, if it doesn't already exists
+    def search(self, db: Db, coin_search: str, method: SearchMethod) -> list[CoinSearchData]:
+        """Search from exchange (Coingecko)
 
         db = instance of Db
         coin_search = string to search in assets
         """
-        # Check if coin already in database
-        db_result = self.search_id_db(db, coin_search)
-        self.print_search_result(db_result, 'Database')
-
         if method == SearchMethod.assets:
             # check if assets are already loaded for today
             id_date = helperfunc.get_date_identifier()
@@ -203,10 +189,7 @@ class CoinSearchCoingecko(CoinSearch):
         else:
             # Do search on coingecko
             cs_result = self.search_id_web(coin_search)
-        self.print_search_result(cs_result, 'CoinGecko')
-
-        # ask user which row is the correct answer
-        self.input_coin_row(db, cs_result)
+        return cs_result
 
     def get_all_assets(self) -> list:
         """Get all assets from Coingecko
@@ -221,59 +204,7 @@ class CoinSearchCoingecko(CoinSearch):
             },...
         }
         """
-        url_list = f'{config.COINGECKO_URL}/coins/list?include_platform=true'
-        resp = self.req.get_request_response(url_list)
+        url = f'{config.COINGECKO_URL}/coins/list?include_platform=true'
+        resp = self.req.get_request_response(url)
         assets = resp['result']
         return assets
-
-
-def __main__():
-    """Get Coingecko search assets and store in databse
-
-    Arguments:
-    - coin to search
-    - image, save image file for all coins in database
-    """
-    argparser = argparse.ArgumentParser()
-    argparser.add_argument('-c', '--coin', type=str,
-                           help='Coin name to search on Coingecko')
-    argparser.add_argument('-i', '--image', action='store_true',
-                           help='Save image file for all coins in database')
-    argparser.add_argument('-w', '--searchweb', action='store_true',
-                           help='Search directly from CoinGecko website instead of first retrieving list of all assets')
-    args = argparser.parse_args()
-    coin_search = args.coin
-    download_all_images = args.image
-
-    if args.searchweb:
-        search_method = SearchMethod.web
-    else:
-        search_method = SearchMethod.assets
-
-    # init session
-    cs = CoinSearchCoingecko()
-    if config.DB_TYPE == 'sqlite':
-        db = DbSqlite3(config.DB_CONFIG)
-    elif config.DB_TYPE == 'postgresql':
-        db = DbPostgresql(config.DB_CONFIG)
-    else:
-        raise RuntimeError('No database configuration')
-
-    db.check_db()
-    db_table_exist = db.check_table(DbTableName.coin.name)
-
-    if download_all_images:
-        if db_table_exist:
-            cs.download_images(db)
-        else:
-            print('No database, exiting')
-    else:
-        while True:
-            if coin_search == None:
-                coin_search = input('Search for coin: ')
-            cs.search(db, coin_search, search_method)
-            coin_search = None
-
-
-if __name__ == '__main__':
-    __main__()

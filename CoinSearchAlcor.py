@@ -77,16 +77,11 @@ class CoinSearchAlcor(CoinSearch):
                                              change=r['changeWeek']))
         return coinsearch
 
-    def search(self, db: Db, coin_search: str, chains: list):
+    def search(self, db: Db, coin_search: str, chains: list) -> list[CoinSearchData]:
         """Search coins in own database (if table exists)
-
-        Show the results
 
         Search coins from Alcor assets (already in assets)
         Show the results
-
-        User can select a row number, from the table of search results
-        To add that coin to the coins table, if it doesn't already exists
 
         db = instance of Db
         coin_search = string to search in assets
@@ -100,16 +95,9 @@ class CoinSearchAlcor(CoinSearch):
             self.assets = self.get_all_assets(chains)
             self.id_assets = id(chains) + id_date
 
-        # Check if coin already in database
-        db_result = self.search_id_db(db, coin_search)
-        self.print_search_result(db_result, 'Database')
-
         # Do search on Alcor assets in memory
         cs_result = self.search_id_assets(coin_search)
-        self.print_search_result(cs_result, 'Alcor')
-
-        # ask user which row is the correct answer
-        self.input_coin_row(db, cs_result)
+        return cs_result
 
     def get_all_assets(self, chains: list) -> dict:
         '''Retrieve all assets from alcor api
@@ -124,48 +112,3 @@ class CoinSearchAlcor(CoinSearch):
             resp = self.req.get_request_response(url)
             coin_assets[chain] = resp['result']
         return coin_assets
-
-
-def __main__():
-    """Get Alcor search assets and store in database
-
-    Arguments:
-    - coin to search
-    - chain to search or if not present all chains
-    """
-    argparser = argparse.ArgumentParser()
-    argparser.add_argument('-c', '--coin', type=str,
-                           help='Coin name to search on Alcor')
-    argparser.add_argument('-ch', '--chain', type=str,
-                           help='Chain name to search on Alcor')
-    args = argparser.parse_args()
-    coin_search = args.coin
-    chain_str = args.chain
-
-    # Select chain from argument or take default all chains
-    if chain_str != None:
-        chains = re.split('[;,]', chain_str)
-    else:
-        chains = config.ALCOR_CHAINS
-
-    # init session
-    cs = CoinSearchAlcor()
-    if config.DB_TYPE == 'sqlite':
-        db = DbSqlite3(config.DB_CONFIG)
-    elif config.DB_TYPE == 'postgresql':
-        db = DbPostgresql(config.DB_CONFIG)
-    else:
-        raise RuntimeError('No database configuration')
-
-    db.check_db()
-    db.check_table(DbTableName.coin.name)
-
-    while True:
-        if coin_search == None:
-            coin_search = input('Search for coin: ')
-        cs.search(db, coin_search, chains)
-        coin_search = None
-
-
-if __name__ == '__main__':
-    __main__()
