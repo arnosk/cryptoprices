@@ -19,11 +19,9 @@ import config
 import DbHelper
 import helperfunc
 from CoinData import CoinData, CoinPriceData
-from CoinPrice import CoinPrice
 from CoinPriceAlcor import CoinPriceAlcor
 from CoinPriceCoingecko import CoinPriceCoingecko
 from CoinPriceCryptowatch import CoinPriceCryptowatch
-from Db import Db
 from DbHelper import DbTableName, DbWebsiteName
 from DbPostgresql import DbPostgresql
 from DbSqlite3 import DbSqlite3
