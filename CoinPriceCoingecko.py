@@ -9,19 +9,14 @@ Coingecko
 """
 import copy
 import math
-import re
-from datetime import datetime
 
 from dateutil import parser
 
 import config
-import DbHelper
 import helperfunc
 from CoinData import CoinData, CoinPriceData
-from CoinPrice import CoinPrice, add_standard_arguments
-from DbHelper import DbTableName, DbWebsiteName
-from DbPostgresql import DbPostgresql
-from DbSqlite3 import DbSqlite3
+from CoinPrice import CoinPrice
+from DbHelper import DbWebsiteName
 
 
 class CoinPriceCoingecko(CoinPrice):
@@ -182,7 +177,7 @@ class CoinPriceCoingecko(CoinPrice):
 
         return prices
 
-    def get_price_hist_marketchart(self, coindata: list[CoinData], currencies: list[str], date: str, chain: str = 'none') -> list[CoinPriceData]:
+    def get_price_hist_marketchart(self, coindata: list[CoinData], currencies: list[str], date: str) -> list[CoinPriceData]:
         """Get coingecko history price of a coin or a token
 
         If chain = 'none' or None search for a coins otherwise search for token contracts
@@ -203,9 +198,6 @@ class CoinPriceCoingecko(CoinPrice):
         params['from'] = ts
         params['to'] = ts
 
-        if (chain is not None):
-            chain = chain.lower()
-
         prices: list[CoinPriceData] = []
         i = 0
         for coin in coindata:
@@ -216,12 +208,12 @@ class CoinPriceCoingecko(CoinPrice):
                 params['vs_currency'] = currency
 
                 coinprice = self.get_pricedata_hist_marketchart_retry(
-                    coin, dt, ts, params, currency, chain)
+                    coin, dt, ts, params, currency)
                 prices.append(coinprice)
 
         return prices
 
-    def get_pricedata_hist_marketchart_retry(self, coin: CoinData, dt, ts, params, currency, chain: str = 'none') -> CoinPriceData:
+    def get_pricedata_hist_marketchart_retry(self, coin: CoinData, dt, ts, params, currency) -> CoinPriceData:
         """Get history price data for one coin from and to specific date
 
         with retry mechanism for bigger time range when no data is found
@@ -234,10 +226,10 @@ class CoinPriceCoingecko(CoinPrice):
         """
         params_try = copy.deepcopy(params)
 
-        if (chain == '' or chain == 'none' or chain is None):
+        if (coin.chain == '' or coin.chain == 'none' or coin.chain is None):
             url = f'{config.COINGECKO_URL}/coins/{coin.siteid}/market_chart/range'
         else:
-            url = f'{config.COINGECKO_URL}/coins/{chain}/contract/{coin.siteid}/market_chart/range'
+            url = f'{config.COINGECKO_URL}/coins/{coin.chain}/contract/{coin.siteid}/market_chart/range'
 
         date = dt
         price = math.nan
@@ -296,103 +288,103 @@ class CoinPriceCoingecko(CoinPrice):
         return price_index
 
 
-def __main__():
-    """Get Coingecko price history
+# def __main__():
+#     """Get Coingecko price history
 
-    Arguments:
-    - date for historical prices
-    - coin search prices for specfic coin
-    - output file for saving results in a csv file
-    """
-    argparser = add_standard_arguments('Coingecko')
-    args = argparser.parse_args()
-    date = args.date
-    coin_str = args.coin
-    output_csv = args.output_csv
-    output_xls = args.output_xls
-    current_date = datetime.now().strftime('%Y-%m-%d %H:%M')
-    print('Current date:', current_date)
+#     Arguments:
+#     - date for historical prices
+#     - coin search prices for specfic coin
+#     - output file for saving results in a csv file
+#     """
+#     argparser = add_standard_arguments('Coingecko')
+#     args = argparser.parse_args()
+#     date = args.date
+#     coin_str = args.coin
+#     output_csv = args.output_csv
+#     output_xls = args.output_xls
+#     current_date = datetime.now().strftime('%Y-%m-%d %H:%M')
+#     print('Current date:', current_date)
 
-    # init session
-    cp = CoinPriceCoingecko()
-    if config.DB_TYPE == 'sqlite':
-        db = DbSqlite3(config.DB_CONFIG)
-    elif config.DB_TYPE == 'postgresql':
-        db = DbPostgresql(config.DB_CONFIG)
-    else:
-        raise RuntimeError('No database configuration')
+#     # init session
+#     cp = CoinPriceCoingecko()
+#     if config.DB_TYPE == 'sqlite':
+#         db = DbSqlite3(config.DB_CONFIG)
+#     elif config.DB_TYPE == 'postgresql':
+#         db = DbPostgresql(config.DB_CONFIG)
+#     else:
+#         raise RuntimeError('No database configuration')
 
-    # check if database and table coins exists and has values
-    db.check_db()
-    db_table_exist = db.check_table(DbTableName.coin.name)
-    if db_table_exist:
-        cp.website_id = DbHelper.get_website_id(db, cp.website)
+#     # check if database and table coins exists and has values
+#     db.check_db()
+#     db_table_exist = db.check_table(DbTableName.coin.name)
+#     if db_table_exist:
+#         cp.website_id = DbHelper.get_website_id(db, cp.website)
 
-    # Determine which coins to retrieve prices for
-    # From arguments, from database, or take default
-    if coin_str != None:
-        coins = re.split('[;,]', coin_str)
-        coin_data = [CoinData(siteid=i) for i in coins]
-    elif cp.website_id > 0:
-        query = f'''SELECT siteid, {DbTableName.coin.name}.name, symbol FROM {DbTableName.coin.name} 
-                    LEFT JOIN {DbTableName.website.name} ON 
-                    {DbTableName.coin.name}.website_id = {DbTableName.website.name}.id
-                    WHERE {DbTableName.website.name}.name = "{cp.website}"
-                '''
-        coins = db.query(query)
-        coin_data = [CoinData(siteid=i[0], name=i[1], symbol=i[2])
-                     for i in coins]
-        coins = [i[0] for i in coins]
-    else:
-        coins = ['bitcoin', 'litecoin', 'cardano', 'solana', 'ardor', 'proton']
-        coin_data = [CoinData(siteid=i) for i in coins]
+#     # Determine which coins to retrieve prices for
+#     # From arguments, from database, or take default
+#     if coin_str != None:
+#         coins = re.split('[;,]', coin_str)
+#         coin_data = [CoinData(siteid=i) for i in coins]
+#     elif cp.website_id > 0:
+#         query = f'''SELECT siteid, {DbTableName.coin.name}.name, symbol FROM {DbTableName.coin.name}
+#                     LEFT JOIN {DbTableName.website.name} ON
+#                     {DbTableName.coin.name}.website_id = {DbTableName.website.name}.id
+#                     WHERE {DbTableName.website.name}.name = "{cp.website}"
+#                 '''
+#         coins = db.query(query)
+#         coin_data = [CoinData(siteid=i[0], name=i[1], symbol=i[2])
+#                      for i in coins]
+#         coins = [i[0] for i in coins]
+#     else:
+#         coins = ['bitcoin', 'litecoin', 'cardano', 'solana', 'ardor', 'proton']
+#         coin_data = [CoinData(siteid=i) for i in coins]
 
-    curr = ['usd', 'eur', 'btc', 'eth']
-    chain = 'binance-smart-chain'
-    contracts = ['0x62858686119135cc00C4A3102b436a0eB314D402',
-                 '0xacfc95585d80ab62f67a14c566c1b7a49fe91167']
+#     curr = ['usd', 'eur', 'btc', 'eth']
+#     chain = 'binance-smart-chain'
+#     contracts = ['0x62858686119135cc00C4A3102b436a0eB314D402',
+#                  '0xacfc95585d80ab62f67a14c566c1b7a49fe91167']
 
-    print('* Current price of coins')
-    price = cp.get_price_current(coin_data, curr)
-    cp.print_coinpricedata(price)
-    cp.write_to_file(price, output_csv, output_xls,
-                     f'_current_coins_{current_date}')
-    print()
+#     print('* Current price of coins')
+#     price = cp.get_price_current(coin_data, curr)
+#     cp.print_coinpricedata(price)
+#     cp.write_to_file(price, output_csv, output_xls,
+#                      f'_current_coins_{current_date}')
+#     print()
 
-    print('* History price of coins')
-    price = cp.get_price_hist(coin_data, curr, date)
-    cp.print_coinpricedata(price)
-    cp.write_to_file(price, output_csv, output_xls,
-                     f'_hist_{date}')
-    print()
+#     print('* History price of coins')
+#     price = cp.get_price_hist(coin_data, curr, date)
+#     cp.print_coinpricedata(price)
+#     cp.write_to_file(price, output_csv, output_xls,
+#                      f'_hist_{date}')
+#     print()
 
-    print('* History price of coins via market_chart')
-    price = cp.get_price_hist_marketchart(coin_data, curr, date)
-    cp.print_coinpricedata(price)
-    cp.write_to_file(price, output_csv, output_xls,
-                     f'_hist_marketchart_{date}')
-    print()
+#     print('* History price of coins via market_chart')
+#     price = cp.get_price_hist_marketchart(coin_data, curr, date)
+#     cp.print_coinpricedata(price)
+#     cp.write_to_file(price, output_csv, output_xls,
+#                      f'_hist_marketchart_{date}')
+#     print()
 
-    # print('* Current price of token')
-    # price = cp.get_price_current_token(chain, contracts, curr)
-    # df = pd.DataFrame(price).transpose()
-    # df = df.sort_index(key=lambda x: x.str.lower())
-    # print()
-    # print(df)
-    # cp.write_to_file(df, output_csv, output_xls,
-    #                  f'_current_token_{current_date}')
-    # print()
+#     # print('* Current price of token')
+#     # price = cp.get_price_current_token(chain, contracts, curr)
+#     # df = pd.DataFrame(price).transpose()
+#     # df = df.sort_index(key=lambda x: x.str.lower())
+#     # print()
+#     # print(df)
+#     # cp.write_to_file(df, output_csv, output_xls,
+#     #                  f'_current_token_{current_date}')
+#     # print()
 
-    # print('* History price of token via market_chart')
-    # price = cp.get_price_hist_marketchart(chain, contracts, curr[0], date)
-    # df = pd.DataFrame(price).transpose()
-    # df = df.sort_index(key=lambda x: x.str.lower())
-    # print()
-    # print(df)
-    # cp.write_to_file(df, output_csv, output_xls,
-    #                  f'_hist_marketchart_token_{date}')
-    # print()
+#     # print('* History price of token via market_chart')
+#     # price = cp.get_price_hist_marketchart(chain, contracts, curr[0], date)
+#     # df = pd.DataFrame(price).transpose()
+#     # df = df.sort_index(key=lambda x: x.str.lower())
+#     # print()
+#     # print(df)
+#     # cp.write_to_file(df, output_csv, output_xls,
+#     #                  f'_hist_marketchart_token_{date}')
+#     # print()
 
 
-if __name__ == '__main__':
-    __main__()
+# if __name__ == '__main__':
+#     __main__()

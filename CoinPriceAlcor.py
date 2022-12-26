@@ -9,20 +9,15 @@ Alcor
 """
 import copy
 import math
-import re
-from calendar import c
 from datetime import datetime
 
 from dateutil import parser
 
 import config
-import DbHelper
 import helperfunc
 from CoinData import CoinData, CoinMarketData, CoinPriceData
-from CoinPrice import CoinPrice, add_standard_arguments
-from DbHelper import DbTableName, DbWebsiteName
-from DbPostgresql import DbPostgresql
-from DbSqlite3 import DbSqlite3
+from CoinPrice import CoinPrice
+from DbHelper import DbWebsiteName
 
 
 class CoinPriceAlcor(CoinPrice):
@@ -34,7 +29,7 @@ class CoinPriceAlcor(CoinPrice):
         self.markets: dict[str, CoinMarketData] = {}
         super().__init__()
 
-    def get_price_current(self, coindata: list[CoinData]) -> list[CoinPriceData]:
+    def get_price_current(self, coindata: list[CoinData], currencies: list[str]) -> list[CoinPriceData]:
         """Get alcor current price
 
         coindata = list of CoinData for market base and quote and chain
@@ -75,7 +70,7 @@ class CoinPriceAlcor(CoinPrice):
 
         return prices
 
-    def get_price_hist_marketchart(self, coindata: list[CoinData], date) -> list[CoinPriceData]:
+    def get_price_hist_marketchart(self, coindata: list[CoinData], currencies: list[str], date: str) -> list[CoinPriceData]:
         """Get alcor history price of a coin via market chart data
 
         coindata = list of CoinData for market base and quote and chain
@@ -175,75 +170,75 @@ class CoinPriceAlcor(CoinPrice):
         return price_minimal
 
 
-def __main__():
-    """Get Alcor price history
+# def __main__():
+#     """Get Alcor price history
 
-    Arguments:
-    - date for historical prices
-    - coin search prices for specfic coin
-    - output file for saving ress in a csv file
-    """
-    argparser = add_standard_arguments('Alcor')
-    argparser.add_argument('-ch', '--chain', type=str,
-                           help='Chain to search on Alcor')
-    args = argparser.parse_args()
-    date = args.date
-    coin_str = args.coin
-    chain_str = args.chain
-    output_csv = args.output_csv
-    output_xls = args.output_xls
-    current_date = datetime.now().strftime('%Y-%m-%d %H:%M')
-    print('Current date:', current_date)
+#     Arguments:
+#     - date for historical prices
+#     - coin search prices for specfic coin
+#     - output file for saving ress in a csv file
+#     """
+#     argparser = add_standard_arguments('Alcor')
+#     argparser.add_argument('-ch', '--chain', type=str,
+#                            help='Chain to search on Alcor')
+#     args = argparser.parse_args()
+#     date = args.date
+#     coin_str = args.coin
+#     chain_str = args.chain
+#     output_csv = args.output_csv
+#     output_xls = args.output_xls
+#     current_date = datetime.now().strftime('%Y-%m-%d %H:%M')
+#     print('Current date:', current_date)
 
-    # init session
-    cp = CoinPriceAlcor()
-    if config.DB_TYPE == 'sqlite':
-        db = DbSqlite3(config.DB_CONFIG)
-    elif config.DB_TYPE == 'postgresql':
-        db = DbPostgresql(config.DB_CONFIG)
-    else:
-        raise RuntimeError('No database configuration')
+#     # init session
+#     cp = CoinPriceAlcor()
+#     if config.DB_TYPE == 'sqlite':
+#         db = DbSqlite3(config.DB_CONFIG)
+#     elif config.DB_TYPE == 'postgresql':
+#         db = DbPostgresql(config.DB_CONFIG)
+#     else:
+#         raise RuntimeError('No database configuration')
 
-    # check if database and table coins exists and has values
-    db.check_db()
-    db_table_exist = db.check_table(DbTableName.coin.name)
-    if db_table_exist:
-        cp.website_id = DbHelper.get_website_id(db, cp.website)
+#     # check if database and table coins exists and has values
+#     db.check_db()
+#     db_table_exist = db.check_table(DbTableName.coin.name)
+#     if db_table_exist:
+#         cp.website_id = DbHelper.get_website_id(db, cp.website)
 
-    # Determine which coins to retrieve prices for
-    # From arguments, from database, or take default
-    if coin_str != None:
-        coins = re.split('[;,]', coin_str)
-        chain = chain_str if chain_str != None else 'proton'
-        coin_data = [CoinData(siteid=i, chain=chain) for i in coins]
-    elif cp.website_id > 0:
-        query = f'''SELECT chain, siteid, {DbTableName.coin.name}.name, symbol, base FROM {DbTableName.coin.name} 
-                    LEFT JOIN {DbTableName.website.name} ON 
-                    {DbTableName.coin.name}.website_id = {DbTableName.website.name}.id
-                    WHERE {DbTableName.website.name}.name = "{cp.website}"
-                '''
-        coins = db.query(query)
-        coin_data = [CoinData(chain=i[0], siteid=i[1], name=i[2], symbol=i[3], base=i[4])
-                     for i in coins]
-    else:
-        coins = [['proton', '157'], ['wax', '158'], ['proton', '13'], ['wax', '67'],
-                 ['proton', '5'], ['eos', '2'], ['telos', '34'], ['proton', '96']]
-        coin_data = [CoinData(siteid=i[1], chain=i[0]) for i in coins]
+#     # Determine which coins to retrieve prices for
+#     # From arguments, from database, or take default
+#     if coin_str != None:
+#         coins = re.split('[;,]', coin_str)
+#         chain = chain_str if chain_str != None else 'proton'
+#         coin_data = [CoinData(siteid=i, chain=chain) for i in coins]
+#     elif cp.website_id > 0:
+#         query = f'''SELECT chain, siteid, {DbTableName.coin.name}.name, symbol, base FROM {DbTableName.coin.name}
+#                     LEFT JOIN {DbTableName.website.name} ON
+#                     {DbTableName.coin.name}.website_id = {DbTableName.website.name}.id
+#                     WHERE {DbTableName.website.name}.name = "{cp.website}"
+#                 '''
+#         coins = db.query(query)
+#         coin_data = [CoinData(chain=i[0], siteid=i[1], name=i[2], symbol=i[3], base=i[4])
+#                      for i in coins]
+#     else:
+#         coins = [['proton', '157'], ['wax', '158'], ['proton', '13'], ['wax', '67'],
+#                  ['proton', '5'], ['eos', '2'], ['telos', '34'], ['proton', '96']]
+#         coin_data = [CoinData(siteid=i[1], chain=i[0]) for i in coins]
 
-    print('* Current price of coins')
-    price = cp.get_price_current(coin_data)
-    cp.print_coinpricedata(price)
-    cp.write_to_file(price, output_csv, output_xls,
-                     f'_current_coins_{current_date}')
-    print()
+#     print('* Current price of coins')
+#     price = cp.get_price_current(coin_data)
+#     cp.print_coinpricedata(price)
+#     cp.write_to_file(price, output_csv, output_xls,
+#                      f'_current_coins_{current_date}')
+#     print()
 
-    print('* History price of coins via market_chart')
-    price = cp.get_price_hist_marketchart(coin_data, date)
-    cp.print_coinpricedata(price)
-    cp.write_to_file(price, output_csv, output_xls,
-                     f'_hist_marketchart_{date}')
-    print()
+#     print('* History price of coins via market_chart')
+#     price = cp.get_price_hist_marketchart(coin_data, date)
+#     cp.print_coinpricedata(price)
+#     cp.write_to_file(price, output_csv, output_xls,
+#                      f'_hist_marketchart_{date}')
+#     print()
 
 
-if __name__ == '__main__':
-    __main__()
+# if __name__ == '__main__':
+#     __main__()

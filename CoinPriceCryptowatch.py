@@ -8,23 +8,18 @@ Collecting prices
 From Cryptowatch
 """
 import copy
-import json
 import math
 import re
 from datetime import datetime
 
-import pandas as pd
 from dateutil import parser
 
 import CoinPrice
 import config
-import DbHelper
 import helperfunc
 from CoinData import CoinData, CoinMarketData, CoinPriceData
-from CoinPrice import CoinPrice, add_standard_arguments
-from DbHelper import DbTableName, DbWebsiteName
-from DbPostgresql import DbPostgresql
-from DbSqlite3 import DbSqlite3
+from CoinPrice import CoinPrice
+from DbHelper import DbWebsiteName
 
 
 class CoinPriceCryptowatch(CoinPrice):
@@ -58,7 +53,6 @@ class CoinPriceCryptowatch(CoinPrice):
 
         prices: list[CoinPriceData] = []
         i = 0
-        current_date = datetime.now().strftime('%Y-%m-%d %H:%M')
         for market in self.markets:
             i += 1
             self.show_progress(i, len(self.markets))
@@ -71,7 +65,7 @@ class CoinPriceCryptowatch(CoinPrice):
                 if resp['status_code'] == 'error':
                     # got no status from request, must be an error
                     prices.append(CoinPriceData(
-                        date=parser.parse(current_date),
+                        date=datetime.now(),
                         coin=market.coin,
                         curr=market.curr,
                         exchange=market.exchange,
@@ -81,7 +75,7 @@ class CoinPriceCryptowatch(CoinPrice):
                         error=resp['error']))
                 else:
                     prices.append(CoinPriceData(
-                        date=parser.parse(current_date),
+                        date=datetime.now(),
                         coin=market.coin,
                         curr=market.curr,
                         exchange=market.exchange,
@@ -327,103 +321,103 @@ class CoinPriceCryptowatch(CoinPrice):
 
         return markets
 
-    def print_markets(self) -> None:
-        """Print cryptowatch markets
-        """
-        print()
-        if self.id_coindata == 0:
-            print('No market data loaded\n')
-            return
-        print('* Available markets of coins')
-        resdf = pd.DataFrame(self.markets)
-        resdf_print = resdf.drop('route', axis=1)
-        print(resdf_print)
-        print()
+    # def print_markets(self) -> None:
+    #     """Print cryptowatch markets
+    #     """
+    #     print()
+    #     if self.id_coindata == 0:
+    #         print('No market data loaded\n')
+    #         return
+    #     print('* Available markets of coins')
+    #     resdf = pd.DataFrame(self.markets)
+    #     resdf_print = resdf.drop('route', axis=1)
+    #     print(resdf_print)
+    #     print()
 
-    def show_allowance(self, allowance):
-        """Show allowance data to standard output on same row
-        """
-        allowance_str = json.dumps(allowance)[1:50]
-        print('\r'+allowance_str.rjust(80), end='', flush=True)
-
-
-def __main__():
-    """Get Cryptowatch price history
-
-    Arguments:
-    - date for historical prices
-    - coin search prices for specfic coin
-    - output file for saving results in a csv file
-    - filter markets strictness, strictly (0), loose (1) or very loose (2) search for currency in base
-    - max markets per pair, 0 is no maximum
-    """
-    argparser = add_standard_arguments('Cryptowatch')
-    argparser.add_argument('-st', '--strictness', type=int,
-                           help='Strictness type for filtering currency in base', default=1)
-    argparser.add_argument('-mp', '--max_markets_per_pair', type=int,
-                           help='Maximum markets per pair, 0 is no max', default=0)
-    args = argparser.parse_args()
-    date = args.date
-    coin_str = args.coin
-    output_csv = args.output_csv
-    output_xls = args.output_xls
-    strictness = args.strictness
-    max_markets_per_pair = args.max_markets_per_pair
-    current_date = datetime.now().strftime('%Y-%m-%d %H:%M')
-    print('Current date:', current_date)
-
-    # init session
-    cp = CoinPriceCryptowatch(strictness=strictness)
-    if config.DB_TYPE == 'sqlite':
-        db = DbSqlite3(config.DB_CONFIG)
-    elif config.DB_TYPE == 'postgresql':
-        db = DbPostgresql(config.DB_CONFIG)
-    else:
-        raise RuntimeError('No database configuration')
-
-    # check if database and table coins exists and has values
-    db.check_db()
-    db_table_exist = db.check_table(DbTableName.coin.name)
-    if db_table_exist:
-        cp.website_id = DbHelper.get_website_id(db, cp.website)
-
-    # Determine which coins to retrieve prices for
-    # From arguments, from database, or take default
-    if coin_str != None:
-        coins = re.split('[;,]', coin_str)
-        coin_data = [CoinData(siteid=i, symbol=i) for i in coins]
-    elif cp.website_id > 0:
-        query = f'''SELECT siteid, {DbTableName.coin.name}.name, symbol FROM {DbTableName.coin.name} 
-                    LEFT JOIN {DbTableName.website.name} ON 
-                    {DbTableName.coin.name}.website_id = {DbTableName.website.name}.id
-                    WHERE {DbTableName.website.name}.name = "{cp.website}"
-                '''
-        coins = db.query(query)
-        coin_data = [CoinData(siteid=i[0], name=i[1], symbol=i[2])
-                     for i in coins]
-        coins = [i[2] for i in coins]
-    else:
-        coins = ['btc', 'ltc', 'ada', 'sol', 'ardr', 'xpr']
-        coin_data = [CoinData(siteid=i, symbol=i) for i in coins]
-
-    curr = ['usd', 'eur', 'btc', 'eth']
-
-    print('* Current price of coins')
-    price = cp.get_price_current(coin_data, curr)
-    price = cp.filter_marketpair_on_volume(price, max_markets_per_pair)
-    cp.print_coinpricedata(price)
-    cp.write_to_file(price, output_csv, output_xls,
-                     f'_current_coins_{current_date}')
-    print()
-
-    print('* History price of coins via market_chart')
-    price = cp.get_price_hist_marketchart(coin_data, curr, date)
-    price = cp.filter_marketpair_on_volume(price, max_markets_per_pair)
-    cp.print_coinpricedata(price)
-    cp.write_to_file(price, output_csv, output_xls,
-                     f'_hist_marketchart_{date}')
-    print()
+    # def show_allowance(self, allowance):
+    #     """Show allowance data to standard output on same row
+    #     """
+    #     allowance_str = json.dumps(allowance)[1:50]
+    #     print('\r'+allowance_str.rjust(80), end='', flush=True)
 
 
-if __name__ == '__main__':
-    __main__()
+# def __main__():
+#     """Get Cryptowatch price history
+
+#     Arguments:
+#     - date for historical prices
+#     - coin search prices for specfic coin
+#     - output file for saving results in a csv file
+#     - filter markets strictness, strictly (0), loose (1) or very loose (2) search for currency in base
+#     - max markets per pair, 0 is no maximum
+#     """
+#     argparser = add_standard_arguments('Cryptowatch')
+#     argparser.add_argument('-st', '--strictness', type=int,
+#                            help='Strictness type for filtering currency in base', default=1)
+#     argparser.add_argument('-mp', '--max_markets_per_pair', type=int,
+#                            help='Maximum markets per pair, 0 is no max', default=0)
+#     args = argparser.parse_args()
+#     date = args.date
+#     coin_str = args.coin
+#     output_csv = args.output_csv
+#     output_xls = args.output_xls
+#     strictness = args.strictness
+#     max_markets_per_pair = args.max_markets_per_pair
+#     current_date = datetime.now().strftime('%Y-%m-%d %H:%M')
+#     print('Current date:', current_date)
+
+#     # init session
+#     cp = CoinPriceCryptowatch(strictness=strictness)
+#     if config.DB_TYPE == 'sqlite':
+#         db = DbSqlite3(config.DB_CONFIG)
+#     elif config.DB_TYPE == 'postgresql':
+#         db = DbPostgresql(config.DB_CONFIG)
+#     else:
+#         raise RuntimeError('No database configuration')
+
+#     # check if database and table coins exists and has values
+#     db.check_db()
+#     db_table_exist = db.check_table(DbTableName.coin.name)
+#     if db_table_exist:
+#         cp.website_id = DbHelper.get_website_id(db, cp.website)
+
+#     # Determine which coins to retrieve prices for
+#     # From arguments, from database, or take default
+#     if coin_str != None:
+#         coins = re.split('[;,]', coin_str)
+#         coin_data = [CoinData(siteid=i, symbol=i) for i in coins]
+#     elif cp.website_id > 0:
+#         query = f'''SELECT siteid, {DbTableName.coin.name}.name, symbol FROM {DbTableName.coin.name}
+#                     LEFT JOIN {DbTableName.website.name} ON
+#                     {DbTableName.coin.name}.website_id = {DbTableName.website.name}.id
+#                     WHERE {DbTableName.website.name}.name = "{cp.website}"
+#                 '''
+#         coins = db.query(query)
+#         coin_data = [CoinData(siteid=i[0], name=i[1], symbol=i[2])
+#                      for i in coins]
+#         coins = [i[2] for i in coins]
+#     else:
+#         coins = ['btc', 'ltc', 'ada', 'sol', 'ardr', 'xpr']
+#         coin_data = [CoinData(siteid=i, symbol=i) for i in coins]
+
+#     curr = ['usd', 'eur', 'btc', 'eth']
+
+#     print('* Current price of coins')
+#     price = cp.get_price_current(coin_data, curr)
+#     price = cp.filter_marketpair_on_volume(price, max_markets_per_pair)
+#     cp.print_coinpricedata(price)
+#     cp.write_to_file(price, output_csv, output_xls,
+#                      f'_current_coins_{current_date}')
+#     print()
+
+#     print('* History price of coins via market_chart')
+#     price = cp.get_price_hist_marketchart(coin_data, curr, date)
+#     price = cp.filter_marketpair_on_volume(price, max_markets_per_pair)
+#     cp.print_coinpricedata(price)
+#     cp.write_to_file(price, output_csv, output_xls,
+#                      f'_hist_marketchart_{date}')
+#     print()
+
+
+# if __name__ == '__main__':
+#     __main__()

@@ -3,7 +3,7 @@ Created on December 26, 2022
 
 @author: arno
 
-Command editor UI
+Command editor UI for searching coins on website / exchanges
 
 """
 import argparse
@@ -164,11 +164,7 @@ class AppCmdSearch:
 
 
 def __main__():
-    """Get Alcor search assets and store in database
-
-    Arguments:
-    - coin to search
-    - chain to search or if not present all chains
+    """Search assets and store in database
     """
     argparser = argparse.ArgumentParser()
     argparser.add_argument('-c', '--coin', type=str,
