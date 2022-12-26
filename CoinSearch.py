@@ -11,7 +11,6 @@ import sys
 from abc import ABC, abstractmethod
 from dataclasses import asdict, dataclass
 from enum import Enum, auto
-from typing import List
 
 import pandas as pd
 
@@ -27,7 +26,7 @@ class Command:
     """Class that represents a command."""
 
     command: str
-    arguments: List[str]
+    arguments: list[str]
 
     def __post_init__(self):
         self.command = self.command.lower()
