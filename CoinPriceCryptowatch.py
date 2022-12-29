@@ -26,11 +26,12 @@ class CoinPriceCryptowatch(CoinPrice):
     """Class for retrieving price data of a set of coins on the cryptowatch website
     """
 
-    def __init__(self, strictness: int = 0) -> None:
+    def __init__(self, strictness: int = 0, max_markets_per_pair: int = 0) -> None:
         self.website = DbWebsiteName.cryptowatch.name
         self.markets: list[CoinMarketData] = []
         self.id_coindata: int = 0
         self.strictness: int = strictness
+        self.max_markets_per_pair: int = max_markets_per_pair
         super().__init__()
 
         # Update header of request session with user API key
@@ -87,6 +88,8 @@ class CoinPriceCryptowatch(CoinPrice):
                     allowance = resp['allowance']
                     self.show_allowance(allowance)
 
+        prices = self.filter_marketpair_on_volume(
+            prices, self.max_markets_per_pair)
         return prices
 
     def get_price_hist_marketchart(self, coindata: list[CoinData], currencies: list[str], date: str) -> list[CoinPriceData]:
@@ -127,6 +130,8 @@ class CoinPriceCryptowatch(CoinPrice):
                     market, dt, ts, params)
                 prices.append(coinprice)
 
+        prices = self.filter_marketpair_on_volume(
+            prices, self.max_markets_per_pair)
         return prices
 
     def get_pricedata_hist_marketchart_retry(self, market: CoinMarketData, dt, ts, params) -> CoinPriceData:

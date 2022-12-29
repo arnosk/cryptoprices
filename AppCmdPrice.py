@@ -38,6 +38,12 @@ class AppCmdPrice:
         #sys.stdout.write(f'Retrieving nr {nr:3d} of {total}\r')
         # sys.stdout.flush()
 
+    def show_allowance(self, allowance):
+        """Show allowance data to standard output on same row
+        """
+        allowance_str = json.dumps(allowance)[1:50]
+        print('\r'+allowance_str.rjust(80), end='', flush=True)
+
     def write_to_file(self, pricedata: list[CoinPriceData], output_csv: str, output_xls: str, suffix: str):
         """Write a dataframe to a csv file and/or excel file
 
@@ -120,12 +126,6 @@ class AppCmdPrice:
         print(resdf_print)
         print()
 
-    def show_allowance(self, allowance):
-        """Show allowance data to standard output on same row
-        """
-        allowance_str = json.dumps(allowance)[1:50]
-        print('\r'+allowance_str.rjust(80), end='', flush=True)
-
 
 def __main__():
     """Search assets and store in database
@@ -166,7 +166,9 @@ def __main__():
         cp = CoinPriceAlcor()
         chain_str = args.chain if args.chain != None else 'proton'
     elif search_website == DbWebsiteName.cryptowatch.name:
-        cp = CoinPriceCryptowatch(strictness=strictness)
+        cp = CoinPriceCryptowatch(
+            strictness=strictness,
+            max_markets_per_pair=max_markets_per_pair)
     else:
         cp = CoinPriceCoingecko()
 
