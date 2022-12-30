@@ -6,28 +6,28 @@ Created on October 15, 2022
 Class CoinSearchAlcor
 
 """
-import argparse
 import re
 
 import config
 import helperfunc
 from CoinData import CoinData, CoinSearchData
 from CoinSearch import CoinSearch
-from Db import Db
-from DbHelper import DbTableName, DbWebsiteName
-from DbPostgresql import DbPostgresql
-from DbSqlite3 import DbSqlite3
+from DbHelper import DbWebsiteName
 
 
 class CoinSearchAlcor(CoinSearch):
     """Class for searching a coin on the alcor exchange
     """
 
-    def __init__(self) -> None:
+    def __init__(self, chains: list[str]) -> None:
         self.website = DbWebsiteName.alcor.name
         self.assets: dict = {}
         self.id_assets: int = 0
+        self.chains: list[str] = chains
         super().__init__()
+
+    def set_chains(self, chains: list[str]) -> None:
+        self.chains = chains
 
     def search_id_assets(self, search_str: str) -> list[CoinSearchData]:
         """Search for coin in list of all assets
@@ -77,7 +77,7 @@ class CoinSearchAlcor(CoinSearch):
                                              change=r['changeWeek']))
         return coinsearch
 
-    def search(self, db: Db, coin_search: str, chains: list) -> list[CoinSearchData]:
+    def search(self, coin_search: str) -> list[CoinSearchData]:
         """Search coins in own database (if table exists)
 
         Search coins from Alcor assets (already in assets)
@@ -90,10 +90,10 @@ class CoinSearchAlcor(CoinSearch):
         """
         # check if assets are already loaded for all chains and today
         id_date = helperfunc.get_date_identifier()
-        if self.id_assets != id(chains) + id_date:
+        if self.id_assets != id(self.chains) + id_date:
             print('----------------loading all assets data--------------')
-            self.assets = self.get_all_assets(chains)
-            self.id_assets = id(chains) + id_date
+            self.assets = self.get_all_assets(self.chains)
+            self.id_assets = id(self.chains) + id_date
 
         # Do search on Alcor assets in memory
         cs_result = self.search_id_assets(coin_search)

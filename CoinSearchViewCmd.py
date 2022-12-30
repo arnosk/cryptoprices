@@ -6,8 +6,6 @@ Created on December 26, 2022
 Command editor UI for searching coins on website / exchanges
 
 """
-import argparse
-import re
 import shlex
 import sys
 from dataclasses import asdict, dataclass
@@ -17,14 +15,9 @@ import pandas as pd
 import config
 import DbHelper
 from CoinData import CoinSearchData
-from CoinSearch import CoinSearch, SearchMethod
-from CoinSearchAlcor import CoinSearchAlcor
-from CoinSearchCoingecko import CoinSearchCoingecko
-from CoinSearchCryptowatch import CoinSearchCryptowatch
+from CoinSearch import CoinSearch
 from Db import Db
-from DbHelper import DbTableName, DbWebsiteName
-from DbPostgresql import DbPostgresql
-from DbSqlite3 import DbSqlite3
+from DbHelper import DbTableName
 
 
 @dataclass
@@ -39,7 +32,7 @@ class Command:
         self.arguments = [x.lower() for x in self.arguments]
 
 
-class AppCmdSearch:
+class CoinSearchViewCmd:
     """UI class for searching in command editor
     """
 
@@ -105,9 +98,10 @@ class AppCmdSearch:
         else:
             print('Coin not found from', text)
 
-    def ui_search(self, db: Db, cs: CoinSearch, chains) -> list[CoinSearchData]:
+    def ui_search(self, db: Db, cs: CoinSearch) -> list[CoinSearchData]:
         """UI for input search string
         """
+        print('New search')
         searchstr = input('Search for coin: ')
 
         # Show result from search in databes database
@@ -115,36 +109,38 @@ class AppCmdSearch:
         self.print_search_result(db_result, 'Database')
 
         # Do search on website / exchange assets
-        cs_result = cs.search(db, searchstr, chains)
+        cs_result = cs.search(searchstr)
         self.print_search_result(cs_result, cs.website)
 
         return cs_result
 
-    def ui_root(self, db: Db, cs: CoinSearch, chains: list[str]):
+    def get_main_input_command(self, max_row: int) -> Command:
+        """ The main user input
+        """
+        if max_row <= 0:
+            message = '(N)ew search, or (Q)uit'
+        else:
+            message = 'Select row nr for coin to store in database, or (N)ew search, or (Q)uit'
+
+        command, *arguments = shlex.split(input(message))
+        return Command(command, arguments)
+
+    def ui_root(self, db: Db, cs: CoinSearch):
         """Root UI for searching and stopping
 
         New search on exchange
         Quit exits the program
         After search select row to insert coin into the table, if it doesn't already exists
-
-        db = instance of Db
-        cs = CoinSearch Exchange
         """
         coinsearchdata = []
         while True:
             maximum = len(coinsearchdata) - 1
-            if maximum <= 0:
-                message = '(N)ew search, or (Q)uit'
-            else:
-                message = 'Select row nr for coin to store in database, or (N)ew search, or (Q)uit'
-            # read a command with arguments from the input
-            command, *arguments = shlex.split(input(message))
-            cmd = Command(command, arguments)
+            cmd = self.get_main_input_command(maximum)
 
             match cmd:
                 case Command(command='new' | 'n'):
                     print('New search')
-                    coinsearchdata = self.ui_search(db, cs, chains)
+                    coinsearchdata = self.ui_search(db, cs)
                 case Command(command='quit' | 'q' | 'exit' | 'e', arguments=['--force' | '-f', *rest]):
                     print("Sending SIGTERM to all processes and quitting the program.")
                     sys.exit('Exiting')
@@ -161,70 +157,3 @@ class AppCmdSearch:
                                 db, cs, coinsearchdata[value])
                         else:
                             print('No correct row number! Try again.')
-
-
-def __main__():
-    """Search assets and store in database
-    """
-    argparser = argparse.ArgumentParser()
-    argparser.add_argument('-c', '--coin', type=str,
-                           help='Coin name to search')
-    argparser.add_argument('-w', '--website', type=str,
-                           help='Website / exchange to search on')
-    argparser.add_argument('-ch', '--chain', type=str,
-                           help='Alcor: Chain name to search on Alcor')
-    argparser.add_argument('-i', '--image', action='store_true',
-                           help='Coingecko: Save image file for all coins from coingecko in database')
-    argparser.add_argument('-s', '--searchweb', action='store_true',
-                           help='Coingecko: Search directly from CoinGecko website instead or first retrieving list of all assets')
-    args = argparser.parse_args()
-    coin_search = args.coin
-    download_all_images = args.image
-
-    if args.searchweb:
-        search_method = SearchMethod.web
-    else:
-        search_method = SearchMethod.assets
-
-    # init session
-    search_website = args.website
-    if search_website == DbWebsiteName.alcor.name:
-        cs = CoinSearchCoingecko()
-    elif search_website == DbWebsiteName.cryptowatch.name:
-        cs = CoinSearchCoingecko()
-    else:
-        cs = CoinSearchCoingecko()
-
-    # Select chain from argument or take default all chains
-    chain_str = args.chain
-    if chain_str != None:
-        chains = re.split('[;,]', chain_str)
-    else:
-        chains = config.ALCOR_CHAINS
-
-    # init session
-    cs = CoinSearchAlcor()
-    if config.DB_TYPE == 'sqlite':
-        db = DbSqlite3(config.DB_CONFIG)
-    elif config.DB_TYPE == 'postgresql':
-        db = DbPostgresql(config.DB_CONFIG)
-    else:
-        raise RuntimeError('No database configuration')
-
-    db.check_db()
-    db_table_exist = db.check_table(DbTableName.coin.name)
-
-    if download_all_images:
-        if db_table_exist:
-            cs = CoinSearchCoingecko()
-            cs.download_images(db)
-            print('Done downloading images')
-        else:
-            print('No database, exiting')
-    else:
-        app = AppCmdSearch()
-        app.ui_root(db, cs, chains)
-
-
-if __name__ == '__main__':
-    __main__()

@@ -24,7 +24,6 @@ the key coins has a list of the search result of coins
   ],
   'exchanges': [] ...
 """
-import argparse
 import re
 
 import config
@@ -33,20 +32,22 @@ import helperfunc
 from CoinData import CoinData, CoinSearchData
 from CoinSearch import CoinSearch, SearchMethod
 from Db import Db
-from DbHelper import DbTableName, DbWebsiteName
-from DbPostgresql import DbPostgresql
-from DbSqlite3 import DbSqlite3
+from DbHelper import DbWebsiteName
 
 
 class CoinSearchCoingecko(CoinSearch):
     """Class for searching a coin on the coingecko website
     """
 
-    def __init__(self) -> None:
+    def __init__(self, search_method: SearchMethod = SearchMethod.web) -> None:
         self.website = DbWebsiteName.coingecko.name
         self.assets: list = []
         self.id_assets: int = 0
+        self.search_method: SearchMethod = search_method
         super().__init__()
+
+    def set_search_method(self, search_method: SearchMethod) -> None:
+        self.search_method = search_method
 
     def save_images(self, image_urls: dict, coin_name: str):
         """Save image files for one coin
@@ -170,13 +171,13 @@ class CoinSearchCoingecko(CoinSearch):
                                              image_large=r['large'], ))
         return coinsearch
 
-    def search(self, db: Db, coin_search: str, method: SearchMethod) -> list[CoinSearchData]:
+    def search(self, coin_search: str) -> list[CoinSearchData]:
         """Search from exchange (Coingecko)
 
         db = instance of Db
         coin_search = string to search in assets
         """
-        if method == SearchMethod.assets:
+        if self.search_method == SearchMethod.assets:
             # check if assets are already loaded for today
             id_date = helperfunc.get_date_identifier()
             if self.id_assets != id_date:

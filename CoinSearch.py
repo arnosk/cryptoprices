@@ -34,12 +34,8 @@ class CoinSearch(ABC):
         self.req = RequestHelper()
 
     @abstractmethod
-    def search(self, db: Db, coin_search: str, assets: dict) -> list[CoinSearchData]:
+    def search(self, coin_search: str) -> list[CoinSearchData]:
         """Searching coins on exchange
-
-        db = instance of Db
-        coin_search = string to search in assets
-        assets = dictionary where each key is a chain with a list of string with assets from Alcor
         """
         pass
 

@@ -6,17 +6,13 @@ Created on Apr 23, 2022
 Cryptowat.ch search
 
 """
-import argparse
 import re
 
 import config
 import helperfunc
 from CoinData import CoinData, CoinSearchData
 from CoinSearch import CoinSearch
-from Db import Db
-from DbHelper import DbTableName, DbWebsiteName
-from DbPostgresql import DbPostgresql
-from DbSqlite3 import DbSqlite3
+from DbHelper import DbWebsiteName
 
 
 class CoinSearchCryptowatch(CoinSearch):
@@ -72,7 +68,7 @@ class CoinSearchCryptowatch(CoinSearch):
                                              route=r['route']))
         return coinsearch
 
-    def search(self, db: Db, coin_search: str) -> list[CoinSearchData]:
+    def search(self, coin_search: str) -> list[CoinSearchData]:
         """Search coins from Cryptowatch assets
 
         db = instance of Db
