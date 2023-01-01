@@ -117,12 +117,15 @@ class CoinSearchViewCmd:
     def get_main_input_command(self, max_row: int) -> Command:
         """ The main user input
         """
-        if max_row <= 0:
-            message = '(N)ew search, or (Q)uit'
+        if max_row < 0:
+            message = '(N)ew search, or (Q)uit : '
         else:
-            message = 'Select row nr for coin to store in database, or (N)ew search, or (Q)uit'
+            message = 'Select row nr for coin to store in database, or (N)ew search, or (Q)uit : '
 
-        command, *arguments = shlex.split(input(message))
+        input_str = input(message)
+        if input_str == '':
+            input_str = 'new'
+        command, *arguments = shlex.split(input_str)
         return Command(command, arguments)
 
     def ui_root(self, db: Db, cs: CoinSearch):
@@ -132,6 +135,7 @@ class CoinSearchViewCmd:
         Quit exits the program
         After search select row to insert coin into the table, if it doesn't already exists
         """
+        print(f'Searching assets on {cs.website}')
         coinsearchdata = []
         while True:
             maximum = len(coinsearchdata) - 1
@@ -139,7 +143,6 @@ class CoinSearchViewCmd:
 
             match cmd:
                 case Command(command='new' | 'n'):
-                    print('New search')
                     coinsearchdata = self.ui_search(db, cs)
                 case Command(command='quit' | 'q' | 'exit' | 'e', arguments=['--force' | '-f', *rest]):
                     print("Sending SIGTERM to all processes and quitting the program.")
