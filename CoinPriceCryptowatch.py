@@ -11,6 +11,7 @@ import copy
 import math
 import re
 from datetime import datetime
+from typing import Callable
 
 from dateutil import parser
 
@@ -37,7 +38,7 @@ class CoinPriceCryptowatch(CoinPrice):
         # Update header of request session with user API key
         self.req.update_header({'X-CW-API-Key': config.CRYPTOWATCH_API})
 
-    def get_price_current(self, coindata: list[CoinData], currencies: list[str]) -> list[CoinPriceData]:
+    def get_price_current(self, coindata: list[CoinData], currencies: list[str], updateview: Callable) -> list[CoinPriceData]:
         """Get Cryptowatch current price
 
         coindata = list of CoinData for market base
@@ -56,7 +57,7 @@ class CoinPriceCryptowatch(CoinPrice):
         i = 0
         for market in self.markets:
             i += 1
-            self.show_progress(i, len(self.markets))
+            updateview(i, len(self.markets))
 
             if market.error == '':
                 url_list = f'{market.route}/summary'
@@ -86,13 +87,13 @@ class CoinPriceCryptowatch(CoinPrice):
 
                 if 'allowance' in resp:
                     allowance = resp['allowance']
-                    self.show_allowance(allowance)
+                    updateview(i, len(self.markets), allowance)
 
         prices = self.filter_marketpair_on_volume(
             prices, self.max_markets_per_pair)
         return prices
 
-    def get_price_hist_marketchart(self, coindata: list[CoinData], currencies: list[str], date: str) -> list[CoinPriceData]:
+    def get_price_hist_marketchart(self, coindata: list[CoinData], currencies: list[str], date: str, updateview: Callable) -> list[CoinPriceData]:
         """Get coingecko history price of a coin or a token
 
         coindata = list of CoinData for market base
@@ -123,18 +124,18 @@ class CoinPriceCryptowatch(CoinPrice):
         i = 0
         for market in self.markets:
             i += 1
-            self.show_progress(i, len(self.markets))
+            updateview(i, len(self.markets))
 
             if market.error == '':
                 coinprice = self.get_pricedata_hist_marketchart_retry(
-                    market, dt, ts, params)
+                    market, dt, ts, params, updateview)
                 prices.append(coinprice)
 
         prices = self.filter_marketpair_on_volume(
             prices, self.max_markets_per_pair)
         return prices
 
-    def get_pricedata_hist_marketchart_retry(self, market: CoinMarketData, dt, ts, params) -> CoinPriceData:
+    def get_pricedata_hist_marketchart_retry(self, market: CoinMarketData, dt, ts, params, updateview: Callable) -> CoinPriceData:
         """Get history price data for one coin from and to specific date
 
         with retry mechanism for bigger time range when no data is found
@@ -187,7 +188,7 @@ class CoinPriceCryptowatch(CoinPrice):
 
             if 'allowance' in resp:
                 allowance = resp['allowance']
-                self.show_allowance(allowance)
+                updateview(1, len(self.markets), allowance)
 
         return CoinPriceData(date=date, coin=coin, curr=curr, exchange=exchange, price=price, volume=volume, active=active, error=error)
 

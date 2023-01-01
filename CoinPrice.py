@@ -6,8 +6,8 @@ Created on October 15, 2022
 Base Class CoinPrice
 
 """
-import json
 from abc import ABC, abstractmethod
+from typing import Callable
 
 from CoinData import CoinData, CoinPriceData
 from RequestHelper import RequestHelper
@@ -24,7 +24,7 @@ class CoinPrice(ABC):
         self.nr_try_max: int = 10
 
     @abstractmethod
-    def get_price_current(self, coindata: list[CoinData], currencies: list[str]) -> list[CoinPriceData]:
+    def get_price_current(self, coindata: list[CoinData], currencies: list[str], updateview: Callable) -> list[CoinPriceData]:
         """Get current price
 
         coindata = list of CoinData for market base
@@ -35,7 +35,7 @@ class CoinPrice(ABC):
         pass
 
     @abstractmethod
-    def get_price_hist_marketchart(self, coindata: list[CoinData], currencies: list[str], date: str) -> list[CoinPriceData]:
+    def get_price_hist_marketchart(self, coindata: list[CoinData], currencies: list[str], date: str, updateview: Callable) -> list[CoinPriceData]:
         """Get history price of a coin or a token
 
         If chain = 'none' or None search for a coins otherwise search for token contracts
@@ -48,7 +48,7 @@ class CoinPrice(ABC):
         """
         pass
 
-    def get_price_hist(self, coindata: list[CoinData], currencies: list[str], date: str) -> list[CoinPriceData]:
+    def get_price_hist(self, coindata: list[CoinData], currencies: list[str], date: str, updateview: Callable) -> list[CoinPriceData]:
         """Get coingecko history price
 
         coindata = list of CoinData for market base
@@ -59,15 +59,15 @@ class CoinPrice(ABC):
         """
         return []
 
-    def show_progress(self, nr: int, total: int):
-        """Show progress to standard output
-        """
-        print(f'\rRetrieving nr {nr:3d} of {total}', end='', flush=True)
-        #sys.stdout.write(f'Retrieving nr {nr:3d} of {total}\r')
-        # sys.stdout.flush()
+    # def show_progress(self, nr: int, total: int):
+    #     """Show progress to standard output
+    #     """
+    #     print(f'\rRetrieving nr {nr:3d} of {total}', end='', flush=True)
+    #     #sys.stdout.write(f'Retrieving nr {nr:3d} of {total}\r')
+    #     # sys.stdout.flush()
 
-    def show_allowance(self, allowance):
-        """Show allowance data to standard output on same row
-        """
-        allowance_str = json.dumps(allowance)[1:50]
-        print('\r'+allowance_str.rjust(80), end='', flush=True)
+    # def show_allowance(self, allowance):
+    #     """Show allowance data to standard output on same row
+    #     """
+    #     allowance_str = json.dumps(allowance)[1:50]
+    #     print('\r'+allowance_str.rjust(80), end='', flush=True)

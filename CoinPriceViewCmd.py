@@ -35,6 +35,11 @@ class CoinPriceViewCmd:
         allowance_str = json.dumps(allowance)[1:50]
         print('\r'+allowance_str.rjust(80), end='', flush=True)
 
+    def update_progress(self, nr: int, total: int, message=None):
+        self.show_progress(nr, total)
+        if message != None:
+            self.show_allowance(message)
+
     def write_to_file(self, pricedata: list[CoinPriceData], output_csv: str, output_xls: str, suffix: str):
         """Write a dataframe to a csv file and/or excel file
 
@@ -87,6 +92,7 @@ class CoinPriceViewCmd:
         pd.set_option('display.float_format', '{:.6e}'.format)
 
         df = self._convert_pricedata_to_df(pricedata)
+        print()
         print(f'{message}')
         print(df)
         print()

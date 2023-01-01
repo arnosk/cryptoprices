@@ -34,20 +34,22 @@ class CoinPriceController():
 
     def run(self, coin_data: list[CoinData], currencies: list[str], date: str, output_csv: str, output_xls: str):
         current_date = datetime.now().strftime('%Y-%m-%d %H:%M')
-        price = self.model.get_price_current(coin_data, currencies)
+        price = self.model.get_price_current(
+            coin_data, currencies, self.view.update_progress)
         self.view.print_coinpricedata(
             f'* Current price of coins, {current_date}', price)
         self.view.write_to_file(price, output_csv, output_xls,
                                 f'_current_coins_{current_date}')
 
         if self.model.website == DbWebsiteName.coingecko.name:
-            price = self.model.get_price_hist(coin_data, currencies, date)
+            price = self.model.get_price_hist(
+                coin_data, currencies, date, self.view.update_progress)
             self.view.print_coinpricedata('* History price of coins', price)
             self.view.write_to_file(price, output_csv, output_xls,
                                     f'_hist_{date}')
 
         price = self.model.get_price_hist_marketchart(
-            coin_data, currencies, date)
+            coin_data, currencies, date, self.view.update_progress)
         self.view.print_coinpricedata(
             '* History price of coins via market_chart', price)
         self.view.write_to_file(price, output_csv, output_xls,
