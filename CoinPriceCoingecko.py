@@ -118,9 +118,6 @@ class CoinPriceCoingecko(CoinPrice):
         dt = helperfunc.convert_date_str(date)
         date = helperfunc.convert_date_to_utc_str(dt)
 
-        print(f'date: {date}, dt: {dt}, timezone: {dt.tzinfo}')
-        return []
-
         prices: list[CoinPriceData] = []
         i = 0
         for coin in coindata:
@@ -172,9 +169,6 @@ class CoinPriceCoingecko(CoinPrice):
         # convert date to unix timestamp
         dt = helperfunc.convert_date_str(date)
         ts = int(dt.timestamp())
-
-        print(f'date: {date}, dt: {dt}, timezone: {dt.tzinfo}, ts: {ts}')
-        return []
 
         # make parameters
         params = {}
