@@ -40,11 +40,6 @@ class CoinPriceCryptowatch(CoinPrice):
 
     def get_price_current(self, coindata: list[CoinData], currencies: list[str], updateview: Callable) -> list[CoinPriceData]:
         """Get Cryptowatch current price
-
-        coindata = list of CoinData for market base
-        currencies = list of strings with assets for market quote
-
-        returns list of CoinPriceData
         """
         # check if markets are already loaded for all coindata
         if self.id_coindata != id(coindata):
@@ -95,12 +90,6 @@ class CoinPriceCryptowatch(CoinPrice):
 
     def get_price_hist_marketchart(self, coindata: list[CoinData], currencies: list[str], date: str, updateview: Callable) -> list[CoinPriceData]:
         """Get coingecko history price of a coin or a token
-
-        coindata = list of CoinData for market base
-        currencies = list of strings with assets for market quote
-        date = historical date 
-
-        returns list of CoinPriceData
         """
         # check if markets are already loaded for all coindata
         if self.id_coindata != id(coindata):
@@ -110,8 +99,7 @@ class CoinPriceCryptowatch(CoinPrice):
             self.id_coindata = id(coindata)
 
         # convert date to unix timestamp
-        dt = parser.parse(date)  # local time
-        # dt = dt.replace(tzinfo=tz.UTC) # set as UTC time
+        dt = helperfunc.convert_date_str(date)
         ts = int(dt.timestamp())
 
         # make parameters
@@ -140,11 +128,6 @@ class CoinPriceCryptowatch(CoinPrice):
 
         with retry mechanism for bigger time range when no data is found
         increase time range until data is found
-
-        market = Market data to search for price
-        date = historical date 
-
-        return CoinPriceData
         """
         params_try = copy.deepcopy(params)
         url = f'{market.route}/ohlc'
@@ -195,11 +178,8 @@ class CoinPriceCryptowatch(CoinPrice):
     def search_price_minimal_timediff(self, prices, ts: int, ms: bool = False):
         """Search for record in price data with the smallest time difference
 
-        prices = results from request with price data
         ts = timestamp in sec if ms = False
         ts = timestamp in msec if ms = True
-
-        result = record with smallest time difference with ts
         """
         timediff_minimal = 10**20
         price_minimal = []
@@ -216,7 +196,6 @@ class CoinPriceCryptowatch(CoinPrice):
 
         Only the exchanges with the greatest volume for a market pair will stay
 
-        prices = list of CoinPriceData of market pairs and exchange with volume column
         max_markets_per_pair = maximum rows of the same pair on different exchanges
                             when 0, no filtering will be done and all markets are shown
         """
@@ -256,11 +235,6 @@ class CoinPriceCryptowatch(CoinPrice):
                     2: very loose is base contains currency
 
         NOT Doing this anymore: if coin does not exist as base, try as quote
-
-        coindata = list of CoinData for market base
-        currencies = list of strings with assets for market quote
-
-        returns list of CoinMarketData
         """
         markets: list[CoinMarketData] = []
         for coin in coindata:

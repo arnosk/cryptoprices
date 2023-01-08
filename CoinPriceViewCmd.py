@@ -43,11 +43,6 @@ class CoinPriceViewCmd:
     def write_to_file(self, pricedata: list[CoinPriceData], output_csv: str, output_xls: str, suffix: str):
         """Write a dataframe to a csv file and/or excel file
 
-        pricedata = list of CoinPriceData
-        output_csv = base filename for csv output file
-        output_xls = base filename for xlsx output file
-        suffix = last part of filename
-
         filename CSV file = config.OUTPUT_PATH+output_csv+suffix.csv
         filename XLS file = config.OUTPUT_PATH+output_xls+suffix.xlsx
         """
@@ -78,8 +73,6 @@ class CoinPriceViewCmd:
 
     def print_coinpricedata(self, message: str, pricedata: list[CoinPriceData]) -> None:
         """Print price data to output
-
-        pricedata = list of CoinPriceData
         """
         if pricedata == []:
             print('Empty pricedata list, nothing to print')
@@ -101,10 +94,6 @@ class CoinPriceViewCmd:
         """Converts list of objects to a pandas DataFrame
 
         json_normalize is used this way to flatten the coindata object inside the pricedata
-
-        coindata = list of CoinPriceData
-
-        returns pandas DataFrame
         """
         df = pd.json_normalize(data=[asdict(obj) for obj in pricedata])
         df.sort_values(by=['coin.name', 'curr'],

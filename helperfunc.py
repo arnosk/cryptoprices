@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 
 import cfscrape
 import pandas as pd
+from dateutil import parser
 
 
 def save_file(url: str, folder: str, filename: str):
@@ -64,3 +65,17 @@ def remove_tz(serie: pd.Series) -> pd.Series:
 def get_date_identifier() -> int:
     day_of_year = datetime.now().timetuple().tm_yday
     return day_of_year
+
+
+def convert_date_str(date: str) -> datetime:
+    """Convert a date string to a datetime
+    When no timezone in string presume it is UTC instead of local
+    """
+    default_date = datetime.now(timezone.utc)
+    return parser.parse(date, default=default_date)
+
+
+def convert_date_to_utc_str(dt: datetime) -> str:
+    """Convert datetime with timezone to a string in UTC
+    """
+    return dt.astimezone(tz=timezone.utc).strftime('%d-%m-%Y_%H:%M')

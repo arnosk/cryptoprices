@@ -40,9 +40,6 @@ class CoinSearchViewCmd:
         """Check for existence of selected coin before inserting coin in database
 
         The selected row is inserted into the table, if it doesn't already exists
-
-        db = instance of Db
-        coin = search data with retrieved coin info from web
         """
         coin_id = coin.coin.siteid
         coin_name = coin.coin.name
@@ -73,7 +70,7 @@ class CoinSearchViewCmd:
         else:
             print('No database connection')
 
-    def print_search_result(self, items: list, text: str, col_drop=[]):
+    def print_items(self, items: list, heading_text: str, col_drop=[]):
         """Print search result to terminal
 
         items = list of items to be printed on screen
@@ -93,10 +90,10 @@ class CoinSearchViewCmd:
                 ['route', 'image_thumb', 'image_large'], axis=1, errors='ignore')
             if col_drop != []:
                 df = df.drop(col_drop, axis=1, errors='ignore')
-            print('Search from', text)
+            print('Search from', heading_text)
             print(df)
         else:
-            print('Coin not found from', text)
+            print('Coin not found from', heading_text)
 
     def ui_search(self, db: Db, cs: CoinSearch) -> list[CoinSearchData]:
         """UI for input search string
@@ -106,11 +103,11 @@ class CoinSearchViewCmd:
 
         # Show result from search in databes database
         db_result = cs.search_id_db(db, searchstr)
-        self.print_search_result(db_result, 'Database')
+        self.print_items(db_result, 'Database')
 
         # Do search on website / exchange assets
         cs_result = cs.search(searchstr)
-        self.print_search_result(cs_result, cs.website)
+        self.print_items(cs_result, cs.website)
 
         return cs_result
 

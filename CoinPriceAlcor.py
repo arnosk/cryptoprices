@@ -32,11 +32,6 @@ class CoinPriceAlcor(CoinPrice):
 
     def get_price_current(self, coindata: list[CoinData], currencies: list[str], updateview: Callable) -> list[CoinPriceData]:
         """Get alcor current price
-
-        coindata = list of CoinData for market base and quote and chain
-        coin.chain and coin.siteid are used to retrieve data from api
-
-        returns list of CoinPriceData
         """
         # make dict per chain (key1) with a dict of coins per coinid (key2)
         coin_srch: dict[str, dict[str, CoinData]] = {}
@@ -73,14 +68,9 @@ class CoinPriceAlcor(CoinPrice):
 
     def get_price_hist_marketchart(self, coindata: list[CoinData], currencies: list[str], date: str, updateview: Callable) -> list[CoinPriceData]:
         """Get alcor history price of a coin via market chart data
-
-        coindata = list of CoinData for market base and quote and chain
-        date = historical date 
-
-        returns list of CoinPriceData
         """
         # convert date to unix timestamp
-        dt = parser.parse(date)  # local time
+        dt = helperfunc.convert_date_str(date)
         ts = int(dt.timestamp())
 
         # make parameters
@@ -106,11 +96,6 @@ class CoinPriceAlcor(CoinPrice):
 
         with retry mechanism for bigger time range when no data is found
         increase time range until data is found
-
-        coindata = CoinData for market base and quote and chain
-        date = historical date 
-
-        return CoinPriceData
         """
         params_try = copy.deepcopy(params)
         url = f'{config.ALCOR_URL.replace("?", coin.chain)}/markets/{coin.siteid}/charts'
@@ -154,11 +139,8 @@ class CoinPriceAlcor(CoinPrice):
     def search_price_minimal_timediff(self, prices, ts: int, ms: bool = False):
         """Search for record in price data with the smallest time difference
 
-        prices = results from request with price data
         ts = timestamp in sec if ms = False
         ts = timestamp in msec if ms = True
-
-        result = record with smallest time difference with ts
         """
         timediff_minimal = 10**20
         price_minimal = {}

@@ -9,9 +9,8 @@ Coingecko
 """
 import copy
 import math
+from datetime import timezone
 from typing import Callable
-
-from dateutil import parser
 
 import config
 import helperfunc
@@ -30,11 +29,6 @@ class CoinPriceCoingecko(CoinPrice):
 
     def get_price_current(self, coindata: list[CoinData], currencies: list[str], updateview: Callable) -> list[CoinPriceData]:
         """Get coingecko current price
-
-        coindata = list of CoinData for market base
-        curr = list of strings with assets for market quote
-
-        returns list of CoinPriceData
         """
         # convert list to comma-separated string
         coins = ','.join(coin.siteid for coin in coindata)
@@ -69,11 +63,6 @@ class CoinPriceCoingecko(CoinPrice):
 
     def get_price_current_token(self, coindata: list[CoinData], currencies: list[str], updateview: Callable) -> list[CoinPriceData]:
         """Get coingecko current price of a token
-
-        coindata = list of CoinData for market base
-        curr = list of strings with assets for market quote
-
-        returns list of CoinPriceData
 
         coindata.chain = chain where contracts are
         coindata.siteid = contract address
@@ -124,16 +113,13 @@ class CoinPriceCoingecko(CoinPrice):
 
     def get_price_hist(self, coindata: list[CoinData], currencies: list[str], date: str, updateview: Callable) -> list[CoinPriceData]:
         """Get coingecko history price
-
-        coindata = list of CoinData for market base
-        curr = list of strings with assets for market quote
-        date = historical date 
-
-        returns list of CoinPriceData
         """
         # set date in correct format for url call
-        dt = parser.parse(date)
-        date = dt.strftime('%d-%m-%Y_%H:%M')
+        dt = helperfunc.convert_date_str(date)
+        date = helperfunc.convert_date_to_utc_str(dt)
+
+        print(f'date: {date}, dt: {dt}, timezone: {dt.tzinfo}')
+        return []
 
         prices: list[CoinPriceData] = []
         i = 0
@@ -182,17 +168,13 @@ class CoinPriceCoingecko(CoinPrice):
         """Get coingecko history price of a coin or a token
 
         If chain = 'none' or None search for a coins otherwise search for token contracts
-
-        chain = chain where contracts are or None for coins search
-        coindata = list of CoinData or token contracts for market base
-        curr = list of strings with assets for market quote
-        date = historical date 
-
-        returns list of CoinPriceData
         """
         # convert date to unix timestamp
-        dt = parser.parse(date)  # local time
+        dt = helperfunc.convert_date_str(date)
         ts = int(dt.timestamp())
+
+        print(f'date: {date}, dt: {dt}, timezone: {dt.tzinfo}, ts: {ts}')
+        return []
 
         # make parameters
         params = {}
@@ -219,11 +201,6 @@ class CoinPriceCoingecko(CoinPrice):
 
         with retry mechanism for bigger time range when no data is found
         increase time range until data is found
-
-        coindata = CoinData for market base and quote and chain
-        date = historical date 
-
-        return CoinPriceData
         """
         params_try = copy.deepcopy(params)
 
@@ -270,11 +247,8 @@ class CoinPriceCoingecko(CoinPrice):
     def search_price_minimal_timediff(self, prices, ts: int, ms: bool = False) -> int:
         """Search for record in price data with the smallest time difference
 
-        prices = results from request with price data
         ts = timestamp in sec if ms = False
         ts = timestamp in msec if ms = True
-
-        result = index of record with smallest time difference with ts
         """
         timediff_minimal = 10**20
         price_index = 0
