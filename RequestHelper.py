@@ -22,8 +22,7 @@ class RequestHelper():
 
     @staticmethod
     def _init_session():
-        """
-        Initialization of the session 
+        """Initialization of the session 
         """
         session = requests.Session()
         #session.headers.update({'Accept': 'application/json'})
@@ -42,20 +41,11 @@ class RequestHelper():
         """
         self.session.headers.update(params)
 
-    def get_request_response(self, url, stream=False) -> dict:
+    def get_request_response(self, url: str, stream=False) -> dict:
         """general request url function 
 
-        should be a class, with _init etc
-
         url = api url for request
-        download_file = request is for downloading a file
-                       (no convertion to json)
         """
-
-        # debug info
-        #print('Inside RequestHelper.getRequestResponse')
-        #print('URL: ', url)
-
         resp = {}
         response = requests.Response
         request_timeout = 120
@@ -69,7 +59,7 @@ class RequestHelper():
                         sleep_time = int(response.headers['Retry-After'])+1
                         self.sleep_print_time(sleep_time)
                     else:
-                        raise requests.exceptions.RequestException
+                        break  # raise requests.exceptions.RequestException
                 else:
                     break
         except requests.exceptions.RequestException:
@@ -115,7 +105,7 @@ class RequestHelper():
 
         return resp
 
-    def api_url_params(self, url, params: dict, api_url_has_params=False):
+    def api_url_params(self, url: str, params: dict, api_url_has_params=False):
         """
         Add params to the url
 
@@ -137,7 +127,7 @@ class RequestHelper():
             url = url[:-1]
         return url
 
-    def sleep_print_time(self, sleeping_time):
+    def sleep_print_time(self, sleeping_time: int):
         """
         Sleep and print countdown timer
         Used for a 429 response retry-after
