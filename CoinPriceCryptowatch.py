@@ -10,7 +10,7 @@ From Cryptowatch
 import copy
 import math
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Callable
 
 from dateutil import parser
@@ -100,6 +100,8 @@ class CoinPriceCryptowatch(CoinPrice):
 
         # convert date to unix timestamp
         dt = helperfunc.convert_date_str(date)
+        # api returns wrong date of 1 hour difference
+        dt = dt + timedelta(hours=1)
         ts = int(dt.timestamp())
 
         # make parameters
@@ -164,6 +166,7 @@ class CoinPriceCryptowatch(CoinPrice):
                     # set found coin price data
                     date = helperfunc.convert_timestamp(
                         resp_price_minimal[0], False)
+                    date = date + timedelta(hours=-1)  # api returns wrong date
                     price = resp_price_minimal[1]  # open
                     volume = resp_price_minimal[5]  # volume
                     error = ''
