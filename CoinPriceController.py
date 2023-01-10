@@ -61,12 +61,14 @@ def __main__():
     """
     argparser = argparse.ArgumentParser()
     argparser.add_argument('-d', '--date', type=str,
-                           help=f'Historical date to search, format: 2011-11-04T00:05:23+04:00',
+                           help='Historical date to search, format: 2011-11-04T00:05:23+04:00',
                            default='2022-05-01T23:00')
     argparser.add_argument('-w', '--website', type=str,
                            help='Website / exchange to search on')
     argparser.add_argument('-c', '--coin', type=str,
-                           help=f'List of coins to search', required=False)
+                           help='List of coins to search', required=False)
+    argparser.add_argument('-cu', '--currency', type=str,
+                           help='List of currencies', required=False)
     argparser.add_argument('-oc', '--output_csv', type=str,
                            help='Filename and path to output CSV file', required=False)
     argparser.add_argument('-ox', '--output_xls', type=str,
@@ -81,6 +83,7 @@ def __main__():
     args = argparser.parse_args()
     date = args.date
     coin_str = args.coin
+    currency_str = args.currency
     output_csv = args.output_csv
     output_xls = args.output_xls
     strictness = args.strictness
@@ -142,7 +145,10 @@ def __main__():
                      'solana', 'ardor', 'proton']
             coin_data = [CoinData(siteid=i) for i in coins]
 
-    curr = ['usd', 'eur', 'btc', 'eth']
+    if currency_str != None:
+        curr = re.split('[;,]', currency_str)
+    else:
+        curr = ['usd', 'eur', 'btc', 'eth']
 
     # for coingecko, token prices
     chain = 'binance-smart-chain'
