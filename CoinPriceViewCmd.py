@@ -22,7 +22,7 @@ class CoinPriceViewCmd:
     """UI class for getting prices in command editor
     """
 
-    def update_progress(self, nr: int, total: int):
+    def update_progress(self, nr: int, total: int) -> None:
         """Show progress to standard output
         """
         print(f'\rRetrieving nr {nr:3d} of {total}', end='', flush=True)
@@ -41,7 +41,7 @@ class CoinPriceViewCmd:
         print(f'\rWaiting for retry, {time:3d} seconds remaining.',
               end='', flush=True)
 
-    def write_to_file(self, pricedata: list[CoinPriceData], output_csv: str, output_xls: str, suffix: str):
+    def write_to_file(self, pricedata: list[CoinPriceData], output_csv: str, output_xls: str, suffix: str) -> None:
         """Write a dataframe to a csv file and/or excel file
 
         filename CSV file = config.OUTPUT_PATH+output_csv+suffix.csv
