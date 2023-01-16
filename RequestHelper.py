@@ -27,7 +27,7 @@ class RequestHelper():
         session = requests.Session()
         #session.headers.update({'Accept': 'application/json'})
         retry = Retry(total=5, backoff_factor=1.5,
-                      respect_retry_after_header=True,
+                      respect_retry_after_header=False,  # False: show sleep time via this class
                       status_forcelist=[502, 503, 504])
         adapter = HTTPAdapter(max_retries=retry)
         session.mount('http://', adapter)
@@ -48,7 +48,7 @@ class RequestHelper():
         """
         resp = {}
         response = requests.Response
-        request_timeout = 120
+        request_timeout = 60
 
         try:
             while True:
