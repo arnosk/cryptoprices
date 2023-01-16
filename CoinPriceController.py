@@ -34,6 +34,8 @@ class CoinPriceController():
         self.price_prg.attach_view_update_progress(self.view.update_progress)
         self.price_prg.attach_view_update_progress_text(
             self.view.update_progress_text)
+        self.price_prg.attach_view_update_waiting_time(
+            self.view.update_waiting_time)
 
     def run(self, coin_data: list[CoinData], currencies: list[str], date: str, output_csv: str, output_xls: str):
         """For now:

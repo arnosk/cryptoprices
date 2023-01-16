@@ -6,6 +6,7 @@ Created on Apr 21, 2022
 Request URL Helper to get response from API 
 """
 import time
+from typing import Callable
 
 import requests
 from requests.adapters import HTTPAdapter
@@ -19,6 +20,7 @@ class RequestHelper():
 
     def __init__(self):
         self.session = self._init_session()
+        self.view_update_waiting_time = Callable[[int], None]
 
     @staticmethod
     def _init_session():
@@ -134,12 +136,14 @@ class RequestHelper():
 
         sleeping_time = total time to sleep in seconds
         """
-        print()
-        print(f'Retrying in {sleeping_time} s')
         for i in range(sleeping_time, 0, -1):
-            print(f'\r{i:3d} seconds remaining.', end='', flush=True)
+            self.view_update_waiting_time(i)
             time.sleep(1)
-        print()
+
+    def attach_view_update_waiting_time(self, fn_waiting_time) -> None:
+        """Set the viewers waiting time function to the coinprice program
+        """
+        self.view_update_waiting_time = fn_waiting_time
 
 
 def __main__():

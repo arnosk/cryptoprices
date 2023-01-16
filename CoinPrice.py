@@ -61,15 +61,20 @@ class CoinPrice(ABC):
         """
         return []
 
-    def attach_view_update_progress(self, fn_update_progress) -> None:
+    def attach_view_update_progress(self, fn_progress) -> None:
         """Set the viewers update progress function to the coinprice program
         """
-        self.view_update_progress = fn_update_progress
+        self.view_update_progress = fn_progress
 
-    def attach_view_update_progress_text(self, fn_update_progress_text) -> None:
-        """Set the viewers update progress function to the coinprice program
+    def attach_view_update_progress_text(self, fn_progress_text) -> None:
+        """Set the viewers update progress text function to the coinprice program
         """
-        self.view_update_progress_text = fn_update_progress_text
+        self.view_update_progress_text = fn_progress_text
+
+    def attach_view_update_waiting_time(self, fn_waiting_time) -> None:
+        """Set the viewers waiting time function to the coinprice program
+        """
+        self.req.attach_view_update_waiting_time(fn_waiting_time)
 
     # def show_progress(self, nr: int, total: int):
     #     """Show progress to standard output

@@ -30,10 +30,16 @@ class CoinPriceViewCmd:
         # sys.stdout.flush()
 
     def update_progress_text(self, text: str) -> None:
-        """Show text data to standard output on same row
+        """Show progress text on same row
         """
-        allowance_str = json.dumps(text)[1:50]
-        print('\r'+allowance_str.rjust(80), end='', flush=True)
+        text = json.dumps(text)[1:50]
+        print('\r'+text.rjust(80), end='', flush=True)
+
+    def update_waiting_time(self, time: int) -> None:
+        """Show waiting time
+        """
+        print(f'\rWaiting for retry, {time:3d} seconds remaining.',
+              end='', flush=True)
 
     def write_to_file(self, pricedata: list[CoinPriceData], output_csv: str, output_xls: str, suffix: str):
         """Write a dataframe to a csv file and/or excel file
