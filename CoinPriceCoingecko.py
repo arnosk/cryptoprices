@@ -9,8 +9,6 @@ Coingecko
 """
 import copy
 import math
-from datetime import timezone
-from typing import Callable
 
 import config
 import helperfunc
@@ -27,7 +25,7 @@ class CoinPriceCoingecko(CoinPrice):
         self.website = DbWebsiteName.coingecko.name
         super().__init__()
 
-    def get_price_current(self, coindata: list[CoinData], currencies: list[str], updateview: Callable) -> list[CoinPriceData]:
+    def get_price_current(self, coindata: list[CoinData], currencies: list[str]) -> list[CoinPriceData]:
         """Get coingecko current price
         """
         # convert list to comma-separated string
@@ -61,7 +59,7 @@ class CoinPriceCoingecko(CoinPrice):
 
         return prices
 
-    def get_price_current_token(self, coindata: list[CoinData], currencies: list[str], updateview: Callable) -> list[CoinPriceData]:
+    def get_price_current_token(self, coindata: list[CoinData], currencies: list[str]) -> list[CoinPriceData]:
         """Get coingecko current price of a token
 
         coindata.chain = chain where contracts are
@@ -111,7 +109,7 @@ class CoinPriceCoingecko(CoinPrice):
 
         return prices
 
-    def get_price_hist(self, coindata: list[CoinData], currencies: list[str], date: str, updateview: Callable) -> list[CoinPriceData]:
+    def get_price_hist(self, coindata: list[CoinData], currencies: list[str], date: str) -> list[CoinPriceData]:
         """Get coingecko history price
         """
         # set date in correct format for url call
@@ -122,7 +120,7 @@ class CoinPriceCoingecko(CoinPrice):
         i = 0
         for coin in coindata:
             i += 1
-            updateview(i, len(coindata))
+            self.view_update_progress(i, len(coindata))
             url = f'{config.COINGECKO_URL}/coins/{coin.siteid}/history?date={date}&localization=false'
             resp = self.req.get_request_response(url)
 
@@ -161,7 +159,7 @@ class CoinPriceCoingecko(CoinPrice):
 
         return prices
 
-    def get_price_hist_marketchart(self, coindata: list[CoinData], currencies: list[str], date: str, updateview: Callable) -> list[CoinPriceData]:
+    def get_price_hist_marketchart(self, coindata: list[CoinData], currencies: list[str], date: str) -> list[CoinPriceData]:
         """Get coingecko history price of a coin or a token
 
         If chain = 'none' or None search for a coins otherwise search for token contracts
@@ -179,7 +177,7 @@ class CoinPriceCoingecko(CoinPrice):
         i = 0
         for coin in coindata:
             i += 1
-            updateview(i, len(coindata))
+            self.view_update_progress(i, len(coindata))
 
             for currency in currencies:
                 params['vs_currency'] = currency

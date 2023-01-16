@@ -10,9 +10,6 @@ Alcor
 import copy
 import math
 from datetime import datetime
-from typing import Callable
-
-from dateutil import parser
 
 import config
 import helperfunc
@@ -30,7 +27,7 @@ class CoinPriceAlcor(CoinPrice):
         self.markets: dict[str, CoinMarketData] = {}
         super().__init__()
 
-    def get_price_current(self, coindata: list[CoinData], currencies: list[str], updateview: Callable) -> list[CoinPriceData]:
+    def get_price_current(self, coindata: list[CoinData], currencies: list[str]) -> list[CoinPriceData]:
         """Get alcor current price
         """
         # make dict per chain (key1) with a dict of coins per coinid (key2)
@@ -66,7 +63,7 @@ class CoinPriceAlcor(CoinPrice):
 
         return prices
 
-    def get_price_hist_marketchart(self, coindata: list[CoinData], currencies: list[str], date: str, updateview: Callable) -> list[CoinPriceData]:
+    def get_price_hist_marketchart(self, coindata: list[CoinData], currencies: list[str], date: str) -> list[CoinPriceData]:
         """Get alcor history price of a coin via market chart data
         """
         # convert date to unix timestamp
@@ -83,7 +80,7 @@ class CoinPriceAlcor(CoinPrice):
         i = 0
         for coin in coindata:
             i += 1
-            updateview(i, len(coindata))
+            self.view_update_progress(i, len(coindata))
 
             coinprice = self.get_pricedata_hist_marketchart_retry(
                 coin, dt, ts, params)

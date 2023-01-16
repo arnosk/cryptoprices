@@ -22,23 +22,18 @@ class CoinPriceViewCmd:
     """UI class for getting prices in command editor
     """
 
-    def show_progress(self, nr: int, total: int):
+    def update_progress(self, nr: int, total: int):
         """Show progress to standard output
         """
         print(f'\rRetrieving nr {nr:3d} of {total}', end='', flush=True)
         #sys.stdout.write(f'Retrieving nr {nr:3d} of {total}\r')
         # sys.stdout.flush()
 
-    def show_allowance(self, allowance):
-        """Show allowance data to standard output on same row
+    def update_progress_text(self, text: str) -> None:
+        """Show text data to standard output on same row
         """
-        allowance_str = json.dumps(allowance)[1:50]
+        allowance_str = json.dumps(text)[1:50]
         print('\r'+allowance_str.rjust(80), end='', flush=True)
-
-    def update_progress(self, nr: int, total: int, message=None):
-        self.show_progress(nr, total)
-        if message != None:
-            self.show_allowance(message)
 
     def write_to_file(self, pricedata: list[CoinPriceData], output_csv: str, output_xls: str, suffix: str):
         """Write a dataframe to a csv file and/or excel file

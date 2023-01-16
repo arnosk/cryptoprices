@@ -22,9 +22,11 @@ class CoinPrice(ABC):
         self.website_id: int = 0
         self.req = RequestHelper()
         self.nr_try_max: int = 10
+        self.view_update_progress = Callable[[int, int], None]
+        self.view_update_progress_text = Callable[[str], None]
 
     @abstractmethod
-    def get_price_current(self, coindata: list[CoinData], currencies: list[str], updateview: Callable) -> list[CoinPriceData]:
+    def get_price_current(self, coindata: list[CoinData], currencies: list[str]) -> list[CoinPriceData]:
         """Get current price
 
         coindata = list of CoinData for market base
@@ -35,7 +37,7 @@ class CoinPrice(ABC):
         pass
 
     @abstractmethod
-    def get_price_hist_marketchart(self, coindata: list[CoinData], currencies: list[str], date: str, updateview: Callable) -> list[CoinPriceData]:
+    def get_price_hist_marketchart(self, coindata: list[CoinData], currencies: list[str], date: str) -> list[CoinPriceData]:
         """Get history price of a coin or a token
 
         If chain = 'none' or None search for a coins otherwise search for token contracts
@@ -48,7 +50,7 @@ class CoinPrice(ABC):
         """
         pass
 
-    def get_price_hist(self, coindata: list[CoinData], currencies: list[str], date: str, updateview: Callable) -> list[CoinPriceData]:
+    def get_price_hist(self, coindata: list[CoinData], currencies: list[str], date: str) -> list[CoinPriceData]:
         """Get coingecko history price
 
         coindata = list of CoinData for market base
@@ -58,6 +60,16 @@ class CoinPrice(ABC):
         returns list of CoinPriceData
         """
         return []
+
+    def attach_view_update_progress(self, fn_update_progress) -> None:
+        """Set the viewers update progress function to the coinprice program
+        """
+        self.view_update_progress = fn_update_progress
+
+    def attach_view_update_progress_text(self, fn_update_progress_text) -> None:
+        """Set the viewers update progress function to the coinprice program
+        """
+        self.view_update_progress_text = fn_update_progress_text
 
     # def show_progress(self, nr: int, total: int):
     #     """Show progress to standard output

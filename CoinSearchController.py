@@ -8,7 +8,6 @@ Controller part for searching crypto coins on website / exchanges
 """
 import argparse
 import re
-import sys
 
 import config
 from CoinSearch import CoinSearch, SearchMethod
@@ -26,13 +25,13 @@ class CoinPriceController():
     """Controller for getting prices from crypto exchanges
     """
 
-    def __init__(self, view: CoinSearchViewCmd, model: CoinSearch, db: Db) -> None:
+    def __init__(self, view: CoinSearchViewCmd, search_prg: CoinSearch, db: Db) -> None:
         self.view = view
-        self.model = model
+        self.search_prg = search_prg
         self.db = db
 
     def run(self):
-        self.view.ui_root(self.db, self.model)
+        self.view.ui_root(self.db, self.search_prg)
 
 
 def __main__():

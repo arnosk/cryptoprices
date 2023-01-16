@@ -28,28 +28,38 @@ class CoinPriceController():
     """Controller for getting prices from crypto exchanges
     """
 
-    def __init__(self, view: CoinPriceViewCmd, model: CoinPrice) -> None:
+    def __init__(self, view: CoinPriceViewCmd, price_prg: CoinPrice) -> None:
         self.view = view
-        self.model = model
+        self.price_prg = price_prg
+        self.price_prg.attach_view_update_progress(self.view.update_progress)
+        self.price_prg.attach_view_update_progress_text(
+            self.view.update_progress_text)
 
     def run(self, coin_data: list[CoinData], currencies: list[str], date: str, output_csv: str, output_xls: str):
+        """For now:
+
+        1: Get current prices
+        2: Get historical prices
+        """
+
+        # Get current prices
         current_date = datetime.now().strftime('%Y-%m-%d %H:%M')
-        price = self.model.get_price_current(
-            coin_data, currencies, self.view.update_progress)
+        price = self.price_prg.get_price_current(coin_data, currencies)
         self.view.print_coinpricedata(
             f'* Current price of coins, {current_date}', price)
         self.view.write_to_file(price, output_csv, output_xls,
                                 f'_current_coins_{current_date}')
 
-        if self.model.website == DbWebsiteName.coingecko.name:
-            price = self.model.get_price_hist(
-                coin_data, currencies, date, self.view.update_progress)
+        # Get historical price (only coingecko)
+        if self.price_prg.website == DbWebsiteName.coingecko.name:
+            price = self.price_prg.get_price_hist(coin_data, currencies, date)
             self.view.print_coinpricedata('* History price of coins', price)
             self.view.write_to_file(price, output_csv, output_xls,
                                     f'_hist_{date}')
 
-        price = self.model.get_price_hist_marketchart(
-            coin_data, currencies, date, self.view.update_progress)
+        # Get histrical price via market chart
+        price = self.price_prg.get_price_hist_marketchart(
+            coin_data, currencies, date)
         self.view.print_coinpricedata(
             '* History price of coins via market_chart', price)
         self.view.write_to_file(price, output_csv, output_xls,
