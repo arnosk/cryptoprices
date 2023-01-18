@@ -62,7 +62,7 @@ class CoinSearch(ABC):
                 coindata = [CoinData(*x) for x in db_result]
         return coindata
 
-    def handle_website_id(self, db: Db) -> int:
+    def get_website_id(self, db: Db) -> int:
         """Get website id from memory or
         Get website id from database or
         insert row in website table

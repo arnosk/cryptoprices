@@ -17,6 +17,7 @@ from CoinSearchAlcor import CoinSearchAlcor
 from CoinSearchCoingecko import CoinSearchCoingecko
 from CoinSearchCryptowatch import CoinSearchCryptowatch
 from CoinSearchViewCmd import CoinSearchViewCmd
+from CoinSearchViewData import CoinInsertStatus
 from Db import Db
 from DbHelper import DbTableName, DbWebsiteName
 from DbPostgresql import DbPostgresql
@@ -44,43 +45,35 @@ class CoinSearchController():
     def search_db(self, searchstr: str) -> list[CoinData]:
         return self.search_prg.search_id_db(self.db, searchstr)
 
-    def insert_coin_check(self, coin: CoinSearchData):
-        """Check for existence of selected coin before inserting coin in database
+    def insert_coin(self, coin: CoinSearchData) -> CoinInsertStatus:
+        """Insert coin in database
 
-        The selected coin is inserted into the table, if it doesn't already exists
+        The coin is inserted into the table, if it doesn't already exists
         """
-        coin_id = coin.coin.siteid
-        coin_name = coin.coin.name
-
         # check if coin name, symbol is already in our database
-        if self.db.has_connection():
-            # if table doesn't exist, create table coins
-            if not self.db.check_table(DbTableName.coin.name):
-                DbHelper.create_coin_table(self.db)
+        if not self.db.has_connection():
+            return CoinInsertStatus.NO_DATABASE
 
-            website_id = self.search_prg.handle_website_id(self.db)
+        # if table doesn't exist, create table coins
+        if not self.db.check_table(DbTableName.coin.name):
+            DbHelper.create_coin_table(self.db)
 
-            db_result = DbHelper.get_coin(self.db, coin_id, website_id)
-            if len(db_result):
-                self.view.show_insert_coin_result(
-                    f'Database already has a row with the coin {coin_name}')
-            else:
-                # add new row to table coins
-                insert_result = DbHelper.insert_coin(
-                    self.db, coin.coin, website_id)
-                if insert_result > 0:
-                    self.view.show_insert_coin_result(
-                        f'{coin_name} added to the database')
+        website_id = self.search_prg.get_website_id(self.db)
 
-                    # safe coin images
-                    images_urls = {'thumb': coin.image_thumb,
-                                   'large': coin.image_large}
-                    self.search_prg.save_images(images_urls, coin_name)
-                else:
-                    self.view.show_insert_coin_result(
-                        f'Error adding {coin_name} to database')
-        else:
-            self.view.show_insert_coin_result('No database connection')
+        db_result = DbHelper.get_coin(self.db, coin.coin.siteid, website_id)
+        if len(db_result):
+            return CoinInsertStatus.COIN_EXISTS
+
+        # add new row to table coins
+        result = DbHelper.insert_coin(self.db, coin.coin, website_id)
+        if result <= 0:
+            return CoinInsertStatus.INSERT_ERROR
+
+        # safe coin images
+        images_urls = {'thumb': coin.image_thumb,
+                       'large': coin.image_large}
+        self.search_prg.save_images(images_urls, coin.coin.name)
+        return CoinInsertStatus.INSERT_OK
 
 
 def __main__():

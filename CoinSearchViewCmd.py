@@ -14,6 +14,7 @@ from typing import Protocol
 import pandas as pd
 
 from CoinData import CoinData, CoinSearchData
+from CoinSearchViewData import CoinInsertStatus
 
 
 class Controller(Protocol):
@@ -26,7 +27,7 @@ class Controller(Protocol):
     def search_db(self, searchstr: str) -> list[CoinData]:
         ...
 
-    def insert_coin_check(self, coin: CoinSearchData):
+    def insert_coin(self, coin: CoinSearchData) -> CoinInsertStatus:
         ...
 
 
@@ -49,7 +50,24 @@ class CoinSearchViewCmd:
     def show_insert_coin_result(self, text: str) -> None:
         """Show the result after chosing a coin for inserting
         """
-        print(f'{text}')
+        print(text)
+
+    def insert_coin(self,  control: Controller, coin: CoinSearchData) -> None:
+        """Try inserting coin via controller and show result
+        """
+        result = control.insert_coin(coin)
+        match result:
+            case CoinInsertStatus.NO_DATABASE:
+                self.show_insert_coin_result('No database connection')
+            case CoinInsertStatus.COIN_EXISTS:
+                self.show_insert_coin_result(
+                    f'Database already has a row with the coin {coin.coin.name}')
+            case CoinInsertStatus.INSERT_ERROR:
+                self.show_insert_coin_result(
+                    f'Error adding {coin.coin.name} to database')
+            case CoinInsertStatus.INSERT_OK:
+                self.show_insert_coin_result(
+                    f'{coin.coin.name} added to the database')
 
     def print_items(self, items: list, heading_text: str, col_drop=[]):
         """Print search result to terminal
@@ -130,6 +148,6 @@ class CoinSearchViewCmd:
                         print(f'Unknown command {cmd.command!r}.')
                     else:
                         if (value >= 0 and value <= maximum):
-                            control.insert_coin_check(coinsearchdata[value])
+                            self.insert_coin(control, coinsearchdata[value])
                         else:
                             print('No correct row number! Try again.')
