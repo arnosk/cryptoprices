@@ -47,27 +47,20 @@ class CoinSearchViewCmd:
     """UI class for searching in command editor
     """
 
-    def show_insert_coin_result(self, text: str) -> None:
-        """Show the result after chosing a coin for inserting
-        """
-        print(text)
-
     def insert_coin(self,  control: Controller, coin: CoinSearchData) -> None:
         """Try inserting coin via controller and show result
         """
         result = control.insert_coin(coin)
         match result:
             case CoinInsertStatus.NO_DATABASE:
-                self.show_insert_coin_result('No database connection')
+                print('No database connection')
             case CoinInsertStatus.COIN_EXISTS:
-                self.show_insert_coin_result(
+                print(
                     f'Database already has a row with the coin {coin.coin.name}')
             case CoinInsertStatus.INSERT_ERROR:
-                self.show_insert_coin_result(
-                    f'Error adding {coin.coin.name} to database')
+                print(f'Error adding {coin.coin.name} to database')
             case CoinInsertStatus.INSERT_OK:
-                self.show_insert_coin_result(
-                    f'{coin.coin.name} added to the database')
+                print(f'{coin.coin.name} added to the database')
 
     def print_items(self, items: list, heading_text: str, col_drop=[]):
         """Print search result to terminal
@@ -85,10 +78,10 @@ class CoinSearchViewCmd:
                 ['route', 'image_thumb', 'image_large'], axis=1, errors='ignore')
             if col_drop != []:
                 df = df.drop(col_drop, axis=1, errors='ignore')
-            print('Search from', heading_text)
+            print(f'Search from {heading_text}')
             print(df)
         else:
-            print('Coin not found from', heading_text)
+            print(f'Coin not found from {heading_text}')
 
     def ui_search(self, control: Controller) -> list[CoinSearchData]:
         """UI for input search string
