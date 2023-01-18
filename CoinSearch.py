@@ -19,8 +19,8 @@ from RequestHelper import RequestHelper
 class SearchMethod(Enum):
     """Class for enumerating search methods
     """
-    assets = auto()
-    web = auto()
+    ASSETS = auto()
+    WEB = auto()
 
 
 class CoinSearch(ABC):

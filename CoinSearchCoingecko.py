@@ -39,7 +39,7 @@ class CoinSearchCoingecko(CoinSearch):
     """Class for searching a coin on the coingecko website
     """
 
-    def __init__(self, search_method: SearchMethod = SearchMethod.web) -> None:
+    def __init__(self, search_method: SearchMethod = SearchMethod.WEB) -> None:
         self.website = DbWebsiteName.coingecko.name
         self.assets: list = []
         self.id_assets: int = 0
@@ -177,7 +177,7 @@ class CoinSearchCoingecko(CoinSearch):
         db = instance of Db
         coin_search = string to search in assets
         """
-        if self.search_method == SearchMethod.assets:
+        if self.search_method == SearchMethod.ASSETS:
             # check if assets are already loaded for today
             id_date = helperfunc.get_date_identifier()
             if self.id_assets != id_date:

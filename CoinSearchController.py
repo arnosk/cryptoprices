@@ -102,9 +102,9 @@ def __main__():
     download_all_images = args.image
 
     if args.searchweb:
-        search_method = SearchMethod.web
+        search_method = SearchMethod.WEB
     else:
-        search_method = SearchMethod.assets
+        search_method = SearchMethod.ASSETS
 
     # Select chain from argument or take default all chains (only for Alcor)
     chain_str = args.chain
