@@ -7,7 +7,6 @@ Base Class CoinSearch
 
 """
 from abc import ABC, abstractmethod
-from dataclasses import asdict
 from enum import Enum, auto
 
 import DbHelper
@@ -47,6 +46,7 @@ class CoinSearch(ABC):
         """
         pass
 
+    # todo: move to other class or fn for db interface...
     def search_id_db(self, db: Db, search: str) -> list[CoinData]:
         """Search for coin in database
 

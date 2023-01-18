@@ -9,20 +9,30 @@ Command editor UI for searching coins on website / exchanges
 import shlex
 import sys
 from dataclasses import asdict, dataclass
+from typing import Protocol
 
 import pandas as pd
 
-import config
-import DbHelper
-from CoinData import CoinSearchData
-from CoinSearch import CoinSearch
-from Db import Db
-from DbHelper import DbTableName
+from CoinData import CoinData, CoinSearchData
+
+
+class Controller(Protocol):
+    def get_website(self) -> str:
+        ...
+
+    def search_website(self, searchstr: str) -> list[CoinSearchData]:
+        ...
+
+    def search_db(self, searchstr: str) -> list[CoinData]:
+        ...
+
+    def insert_coin_check(self, coin: CoinSearchData):
+        ...
 
 
 @dataclass
 class Command:
-    """Class that represents a command."""
+    """Class that represents a command for CLI view"""
 
     command: str
     arguments: list[str]
@@ -36,46 +46,13 @@ class CoinSearchViewCmd:
     """UI class for searching in command editor
     """
 
-    def insert_coin_check(self, db: Db, cs: CoinSearch, coin: CoinSearchData):
-        """Check for existence of selected coin before inserting coin in database
-
-        The selected row is inserted into the table, if it doesn't already exists
+    def show_insert_coin_result(self, text: str) -> None:
+        """Show the result after chosing a coin for inserting
         """
-        coin_id = coin.coin.siteid
-        coin_name = coin.coin.name
-
-        # check if coin name, symbol is already in our database
-        if db.has_connection():
-            # if table doesn't exist, create table coins
-            if not db.check_table(DbTableName.coin.name):
-                DbHelper.create_coin_table(db)
-
-            website_id = cs.handle_website_id(db)
-
-            db_result = DbHelper.get_coin(db, coin_id, website_id)
-            if len(db_result):
-                print(f'Database already has a row with the coin {coin_name}')
-            else:
-                # add new row to table coins
-                insert_result = DbHelper.insert_coin(db, coin.coin, website_id)
-                if insert_result > 0:
-                    print(f'{coin_name} added to the database')
-
-                    # safe coin images
-                    images_urls = {'thumb': coin.image_thumb,
-                                   'large': coin.image_large}
-                    cs.save_images(images_urls, coin_name)
-                else:
-                    print(f'Error adding {coin_name} to database')
-        else:
-            print('No database connection')
+        print(f'{text}')
 
     def print_items(self, items: list, heading_text: str, col_drop=[]):
         """Print search result to terminal
-
-        items = list of items to be printed on screen
-        text = heading above the printed results
-        col_drop = list with columns names not to be shown
         """
         # init pandas displaying
         pd.set_option('display.max_rows', None)
@@ -95,19 +72,19 @@ class CoinSearchViewCmd:
         else:
             print('Coin not found from', heading_text)
 
-    def ui_search(self, db: Db, cs: CoinSearch) -> list[CoinSearchData]:
+    def ui_search(self, control: Controller) -> list[CoinSearchData]:
         """UI for input search string
         """
         print('New search')
         searchstr = input('Search for coin: ')
 
         # Show result from search in databes database
-        db_result = cs.search_id_db(db, searchstr)
+        db_result = control.search_db(searchstr)
         self.print_items(db_result, 'Database')
 
         # Do search on website / exchange assets
-        cs_result = cs.search(searchstr)
-        self.print_items(cs_result, cs.website)
+        cs_result = control.search_website(searchstr)
+        self.print_items(cs_result, control.get_website())
 
         return cs_result
 
@@ -125,14 +102,14 @@ class CoinSearchViewCmd:
         command, *arguments = shlex.split(input_str)
         return Command(command, arguments)
 
-    def ui_root(self, db: Db, cs: CoinSearch):
+    def ui_root(self, control: Controller) -> None:
         """Root UI for searching and stopping
 
         New search on exchange
         Quit exits the program
         After search select row to insert coin into the table, if it doesn't already exists
         """
-        print(f'Searching assets on {cs.website}')
+        print(f'Searching assets on {control.get_website()}')
         coinsearchdata = []
         while True:
             maximum = len(coinsearchdata) - 1
@@ -140,7 +117,7 @@ class CoinSearchViewCmd:
 
             match cmd:
                 case Command(command='new' | 'n'):
-                    coinsearchdata = self.ui_search(db, cs)
+                    coinsearchdata = self.ui_search(control)
                 case Command(command='quit' | 'q' | 'exit' | 'e', arguments=['--force' | '-f', *rest]):
                     print("Sending SIGTERM to all processes and quitting the program.")
                     sys.exit('Exiting')
@@ -153,7 +130,6 @@ class CoinSearchViewCmd:
                         print(f'Unknown command {cmd.command!r}.')
                     else:
                         if (value >= 0 and value <= maximum):
-                            self.insert_coin_check(
-                                db, cs, coinsearchdata[value])
+                            control.insert_coin_check(coinsearchdata[value])
                         else:
                             print('No correct row number! Try again.')

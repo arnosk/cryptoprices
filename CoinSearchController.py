@@ -10,18 +10,20 @@ import argparse
 import re
 
 import config
+import DbHelper
+from CoinData import CoinData, CoinSearchData
 from CoinSearch import CoinSearch, SearchMethod
 from CoinSearchAlcor import CoinSearchAlcor
 from CoinSearchCoingecko import CoinSearchCoingecko
 from CoinSearchCryptowatch import CoinSearchCryptowatch
-from CoinSearchViewCmd import CoinSearchViewCmd, Command
+from CoinSearchViewCmd import CoinSearchViewCmd
 from Db import Db
 from DbHelper import DbTableName, DbWebsiteName
 from DbPostgresql import DbPostgresql
 from DbSqlite3 import DbSqlite3
 
 
-class CoinPriceController():
+class CoinSearchController():
     """Controller for getting prices from crypto exchanges
     """
 
@@ -31,7 +33,54 @@ class CoinPriceController():
         self.db = db
 
     def run(self):
-        self.view.ui_root(self.db, self.search_prg)
+        self.view.ui_root(self)
+
+    def get_website(self) -> str:
+        return self.search_prg.website
+
+    def search_website(self, searchstr: str) -> list[CoinSearchData]:
+        return self.search_prg.search(searchstr)
+
+    def search_db(self, searchstr: str) -> list[CoinData]:
+        return self.search_prg.search_id_db(self.db, searchstr)
+
+    def insert_coin_check(self, coin: CoinSearchData):
+        """Check for existence of selected coin before inserting coin in database
+
+        The selected coin is inserted into the table, if it doesn't already exists
+        """
+        coin_id = coin.coin.siteid
+        coin_name = coin.coin.name
+
+        # check if coin name, symbol is already in our database
+        if self.db.has_connection():
+            # if table doesn't exist, create table coins
+            if not self.db.check_table(DbTableName.coin.name):
+                DbHelper.create_coin_table(self.db)
+
+            website_id = self.search_prg.handle_website_id(self.db)
+
+            db_result = DbHelper.get_coin(self.db, coin_id, website_id)
+            if len(db_result):
+                self.view.show_insert_coin_result(
+                    f'Database already has a row with the coin {coin_name}')
+            else:
+                # add new row to table coins
+                insert_result = DbHelper.insert_coin(
+                    self.db, coin.coin, website_id)
+                if insert_result > 0:
+                    self.view.show_insert_coin_result(
+                        f'{coin_name} added to the database')
+
+                    # safe coin images
+                    images_urls = {'thumb': coin.image_thumb,
+                                   'large': coin.image_large}
+                    self.search_prg.save_images(images_urls, coin_name)
+                else:
+                    self.view.show_insert_coin_result(
+                        f'Error adding {coin_name} to database')
+        else:
+            self.view.show_insert_coin_result('No database connection')
 
 
 def __main__():
@@ -92,7 +141,7 @@ def __main__():
         exit()
 
     view = CoinSearchViewCmd()
-    app = CoinPriceController(view, cs, db)
+    app = CoinSearchController(view, cs, db)
     app.run()
 
 
