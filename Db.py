@@ -56,41 +56,47 @@ class Db(ABC):
         """
         pass
 
-    def check_table(self, table_name: str):
+    def check_table(self, table_name: str) -> bool:
         """Check if table exists in database
         """
-        check = False
-        if self.conn is not None:
-            if table_name is not None:
-                query_chk_table = self.get_query_check_table()
-                if self.query(query_chk_table, (table_name,)):
-                    # table exists
-                    check = True
-                    print(f'"{table_name}" table exist')
-                else:
-                    print(f'"{table_name}" table not exist.')
-        else:
+        if self.conn is None:
             raise RuntimeError('Database not connected')
-        return check
 
-    def check_db(self):
+        if table_name is None:
+            return False
+
+        query_chk_table = self.get_query_check_table()
+        if self.query(query_chk_table, (table_name,)):
+            # table exists
+            #print(f'"{table_name}" table exist')
+            return True
+
+        #print(f'"{table_name}" table not exist.')
+        return False
+
+    def check_db(self) -> bool:
         """Check wether the database exists and can be opened or created
+
+        Database can be created in case of sqlite3
         """
-        check = False
         if self.conn is None:
             try:
                 self.open()
-            except:
-                check = False
+            except RuntimeError as e:
+                pass
 
         if self.conn is None:
-            self.create_db()
+            try:
+                self.create_db()
+            except Exception as e:
+                print(e)
+                raise  # todo
 
         if self.conn is not None:
             # Database exists
-            check = True
+            return True
 
-        return check
+        return False
 
     @abstractmethod
     def get_execute_result(self, cursor) -> int:
@@ -110,7 +116,7 @@ class Db(ABC):
         params = dictionary for parameters in query
         return value = rowcount or total changes
         """
-        print('Execute:', sql, params)
+        #print('Execute:', sql, params)
         cursor = self.conn.cursor()  # type: ignore
         if params:
             cursor.execute(sql, params)
@@ -127,7 +133,7 @@ class Db(ABC):
         params = dictionary for parameters in query
         return value = fetched data from query
         """
-        print('Query:', sql, params)
+        #print('Query:', sql, params)
         cursor = self.conn.cursor()  # type: ignore
         if params:
             cursor.execute(sql, params)
