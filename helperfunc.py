@@ -67,12 +67,18 @@ def get_date_identifier() -> int:
     return day_of_year
 
 
-def convert_date_str(date: str) -> datetime:
+def convert_str_to_date(date: str) -> datetime:
     """Convert a date string to a datetime
     When no timezone in string presume it is UTC instead of local
     """
-    default_date = datetime.now(timezone.utc)
-    return parser.parse(date, default=default_date)
+    default_dt = datetime.now(timezone.utc)
+    try:
+        dt = parser.parse(date, default=default_dt)
+    except parser.ParserError as e:
+        print(f'Date format error: {e}')
+        return default_dt
+    else:
+        return dt
 
 
 def convert_date_to_utc_str(dt: datetime) -> str:

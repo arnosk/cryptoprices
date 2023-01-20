@@ -113,7 +113,7 @@ class CoinPriceCoingecko(CoinPrice):
         """Get coingecko history price
         """
         # set date in correct format for url call
-        dt = helperfunc.convert_date_str(date)
+        dt = helperfunc.convert_str_to_date(date)
         date = helperfunc.convert_date_to_utc_str(dt)
 
         prices: list[CoinPriceData] = []
@@ -165,7 +165,7 @@ class CoinPriceCoingecko(CoinPrice):
         If chain = 'none' or None search for a coins otherwise search for token contracts
         """
         # convert date to unix timestamp
-        dt = helperfunc.convert_date_str(date)
+        dt = helperfunc.convert_str_to_date(date)
         ts = int(dt.timestamp())
 
         # make parameters

@@ -17,7 +17,7 @@ from CoinData import CoinData, CoinSearchData
 from CoinViewData import CoinInsertStatus, Command
 
 
-class Controller(Protocol):
+class SearchController(Protocol):
     def get_website(self) -> str:
         ...
 
@@ -35,7 +35,7 @@ class CoinSearchViewCli:
     """UI class for searching in command editor
     """
 
-    def insert_coin(self,  control: Controller, coin: CoinSearchData) -> None:
+    def insert_coin(self,  control: SearchController, coin: CoinSearchData) -> None:
         """Try inserting coin via controller and show result
         """
         result = control.insert_coin(coin)
@@ -71,7 +71,7 @@ class CoinSearchViewCli:
         else:
             print(f'Coin not found from {heading_text}')
 
-    def ui_search(self, control: Controller) -> list[CoinSearchData]:
+    def ui_search(self, control: SearchController) -> list[CoinSearchData]:
         """UI for input search string
         """
         print('New search')
@@ -101,8 +101,8 @@ class CoinSearchViewCli:
         command, *arguments = shlex.split(input_str)
         return Command(command, arguments)
 
-    def ui_root(self, control: Controller) -> None:
-        """Root UI for searching and stopping
+    def ui_root(self, control: SearchController) -> None:
+        """Root UI for searching
 
         New search on exchange
         Quit exits the program

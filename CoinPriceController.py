@@ -8,17 +8,16 @@ Controller part for get prices of coins on website / exchanges
 """
 import argparse
 import re
-from datetime import datetime
-from xmlrpc.client import DateTime
 
 import config
 import DbHelper
-from CoinData import CoinData
+from CoinData import CoinData, CoinPriceData
 from CoinPrice import CoinPrice
 from CoinPriceAlcor import CoinPriceAlcor
 from CoinPriceCoingecko import CoinPriceCoingecko
 from CoinPriceCryptowatch import CoinPriceCryptowatch
-from CoinPriceViewCmd import CoinPriceViewCmd
+from CoinPriceViewCli import CoinPriceViewCli
+from Db import Db
 from DbHelper import DbTableName, DbWebsiteName
 from DbPostgresql import DbPostgresql
 from DbSqlite3 import DbSqlite3
@@ -28,44 +27,67 @@ class CoinPriceController():
     """Controller for getting prices from crypto exchanges
     """
 
-    def __init__(self, view: CoinPriceViewCmd, price_prg: CoinPrice) -> None:
+    def __init__(self, view: CoinPriceViewCli, price_prg: CoinPrice, db: Db) -> None:
         self.view = view
         self.price_prg = price_prg
+        self.db = db
         self.price_prg.attach_view_update_progress(self.view.update_progress)
         self.price_prg.attach_view_update_progress_text(
             self.view.update_progress_text)
         self.price_prg.attach_view_update_waiting_time(
             self.view.update_waiting_time)
+        self.coin_data: list[CoinData] = []
+        self.currency_data: list[str] = ['usd', 'eur', 'btc', 'eth']
 
-    def run(self, coin_data: list[CoinData], currencies: list[str], date: str, output_csv: str, output_xls: str):
+    def get_website(self) -> str:
+        return self.price_prg.website
+
+    def get_price_current(self) -> list[CoinPriceData]:
+        """Get current price
+        """
+        return self.price_prg.get_price_current(self.coin_data, self.currency_data)
+
+    def get_price_hist(self, date: str) -> list[CoinPriceData]:
+        """Get coingecko history price
+        """
+        return self.price_prg.get_price_hist(self.coin_data, self.currency_data, date)
+
+    def get_price_hist_marketchart(self, date: str) -> list[CoinPriceData]:
+        """Get history price of a coin or a token
+        """
+        return self.price_prg.get_price_hist_marketchart(self.coin_data, self.currency_data, date)
+
+    def set_currency_data(self, currency_data: list[str]) -> None:
+        """Set the currency data manual
+        """
+        self.currency_data = currency_data
+
+    def set_coin_data(self, coin_data: list[CoinData]) -> None:
+        """Set the coin data manual
+        """
+        self.coin_data = coin_data
+
+    def load_coin_data_db(self) -> None:
+        """Retrieve the coin data in database
+        """
+        if self.price_prg.website_id > 0:
+            query = f'''SELECT chain, siteid, {DbTableName.coin.name}.name, symbol, base FROM {DbTableName.coin.name} 
+                        LEFT JOIN {DbTableName.website.name} ON 
+                        {DbTableName.coin.name}.website_id = {DbTableName.website.name}.id
+                        WHERE {DbTableName.website.name}.name = "{self.get_website()}"
+                    '''
+            coins = self.db.query(query)
+            self.coin_data = [CoinData(chain=i[0], siteid=i[1], name=i[2], symbol=i[3], base=i[4])
+                              for i in coins]
+
+    def run(self, coin_data: list[CoinData], date: str):
         """For now:
 
         1: Get current prices
         2: Get historical prices
         """
-
-        # Get current prices
-        current_date = datetime.now().strftime('%Y-%m-%d %H:%M')
-        price = self.price_prg.get_price_current(coin_data, currencies)
-        self.view.print_coinpricedata(
-            f'* Current price of coins, {current_date}', price)
-        self.view.write_to_file(price, output_csv, output_xls,
-                                f'_current_coins_{current_date}')
-
-        # Get historical price (only coingecko)
-        if self.price_prg.website == DbWebsiteName.coingecko.name:
-            price = self.price_prg.get_price_hist(coin_data, currencies, date)
-            self.view.print_coinpricedata('* History price of coins', price)
-            self.view.write_to_file(price, output_csv, output_xls,
-                                    f'_hist_{date}')
-
-        # Get histrical price via market chart
-        price = self.price_prg.get_price_hist_marketchart(
-            coin_data, currencies, date)
-        self.view.print_coinpricedata(
-            '* History price of coins via market_chart', price)
-        self.view.write_to_file(price, output_csv, output_xls,
-                                f'_hist_marketchart_{date}')
+        self.coin_data = coin_data
+        self.view.ui_root(self, date)
 
 
 def __main__():
@@ -79,12 +101,6 @@ def __main__():
                            help='Website / exchange to search on')
     argparser.add_argument('-c', '--coin', type=str,
                            help='List of coins to search', required=False)
-    argparser.add_argument('-cu', '--currency', type=str,
-                           help='List of currencies', required=False)
-    argparser.add_argument('-oc', '--output_csv', type=str,
-                           help='Filename and path to output CSV file', required=False)
-    argparser.add_argument('-ox', '--output_xls', type=str,
-                           help='Filename and path to the output Excel file', required=False)
     argparser.add_argument('-st', '--strictness', type=int,
                            help='Cryptowatch: Strictness type for filtering currency in base', default=1)
     argparser.add_argument('-mp', '--max_markets_per_pair', type=int,
@@ -95,9 +111,6 @@ def __main__():
     args = argparser.parse_args()
     date = args.date
     coin_str = args.coin
-    currency_str = args.currency
-    output_csv = args.output_csv
-    output_xls = args.output_xls
     strictness = args.strictness
     max_markets_per_pair = args.max_markets_per_pair
 
@@ -157,23 +170,14 @@ def __main__():
                      'solana', 'ardor', 'proton']
             coin_data = [CoinData(siteid=i) for i in coins]
 
-    if currency_str != None:
-        curr = re.split('[;,]', currency_str)
-    else:
-        curr = ['usd', 'eur', 'btc', 'eth']
-
     # for coingecko, token prices
     chain = 'binance-smart-chain'
     contracts = ['0x62858686119135cc00C4A3102b436a0eB314D402',
                  '0xacfc95585d80ab62f67a14c566c1b7a49fe91167']
 
-    view = CoinPriceViewCmd()
-    app = CoinPriceController(view, cp)
-    app.run(coin_data=coin_data,
-            currencies=curr,
-            date=date,
-            output_csv=output_csv,
-            output_xls=output_xls)
+    view = CoinPriceViewCli()
+    app = CoinPriceController(view, cp, db)
+    app.run(coin_data=coin_data, date=date)
 
 
 if __name__ == '__main__':

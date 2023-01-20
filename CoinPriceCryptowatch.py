@@ -97,7 +97,7 @@ class CoinPriceCryptowatch(CoinPrice):
             self.id_coindata = id(coindata)
 
         # convert date to unix timestamp
-        dt = helperfunc.convert_date_str(date)
+        dt = helperfunc.convert_str_to_date(date)
         # api returns wrong date of 1 hour difference
         dt = dt + timedelta(hours=1)
         ts = int(dt.timestamp())

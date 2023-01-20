@@ -67,7 +67,7 @@ class CoinPriceAlcor(CoinPrice):
         """Get alcor history price of a coin via market chart data
         """
         # convert date to unix timestamp
-        dt = helperfunc.convert_date_str(date)
+        dt = helperfunc.convert_str_to_date(date)
         ts = int(dt.timestamp())
 
         # make parameters

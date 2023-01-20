@@ -29,3 +29,18 @@ class CoinInsertStatus(Enum):
     COIN_EXISTS = auto()
     INSERT_OK = auto()
     INSERT_ERROR = auto()
+
+
+class OutputFileType(Enum):
+    """Class for output file types
+    """
+    XLSX = auto()
+    CSV = auto()
+
+
+class PriceFunction(Enum):
+    """Class for naming method for the retrieving price functions
+    """
+    CURRENT = 'Current'
+    HISTORICAL_SIMPLE = 'HistSimple'
+    HISTORICAL_MARKETCHART = 'HistMarketchart'
