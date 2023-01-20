@@ -8,13 +8,13 @@ Command editor UI for searching coins on website / exchanges
 """
 import shlex
 import sys
-from dataclasses import asdict, dataclass
+from dataclasses import asdict
 from typing import Protocol
 
 import pandas as pd
 
 from CoinData import CoinData, CoinSearchData
-from CoinSearchViewData import CoinInsertStatus
+from CoinViewData import CoinInsertStatus, Command
 
 
 class Controller(Protocol):
@@ -31,19 +31,7 @@ class Controller(Protocol):
         ...
 
 
-@dataclass
-class Command:
-    """Class that represents a command for CLI view"""
-
-    command: str
-    arguments: list[str]
-
-    def __post_init__(self):
-        self.command = self.command.lower()
-        self.arguments = [x.lower() for x in self.arguments]
-
-
-class CoinSearchViewCmd:
+class CoinSearchViewCli:
     """UI class for searching in command editor
     """
 

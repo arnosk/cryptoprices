@@ -16,8 +16,8 @@ from CoinSearch import CoinSearch, SearchMethod
 from CoinSearchAlcor import CoinSearchAlcor
 from CoinSearchCoingecko import CoinSearchCoingecko
 from CoinSearchCryptowatch import CoinSearchCryptowatch
-from CoinSearchViewCmd import CoinSearchViewCmd
-from CoinSearchViewData import CoinInsertStatus
+from CoinSearchViewCli import CoinSearchViewCli
+from CoinViewData import CoinInsertStatus
 from Db import Db
 from DbHelper import DbTableName, DbWebsiteName
 from DbPostgresql import DbPostgresql
@@ -28,7 +28,7 @@ class CoinSearchController():
     """Controller for getting prices from crypto exchanges
     """
 
-    def __init__(self, view: CoinSearchViewCmd, search_prg: CoinSearch, db: Db) -> None:
+    def __init__(self, view: CoinSearchViewCli, search_prg: CoinSearch, db: Db) -> None:
         self.view = view
         self.search_prg = search_prg
         self.db = db
@@ -133,7 +133,7 @@ def __main__():
             print('No database, exiting')
         exit()
 
-    view = CoinSearchViewCmd()
+    view = CoinSearchViewCli()
     app = CoinSearchController(view, cs, db)
     app.run()
 

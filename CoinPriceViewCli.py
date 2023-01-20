@@ -15,10 +15,11 @@ import pandas as pd
 
 import config
 import helperfunc
-from CoinData import CoinPriceData
+from CoinData import CoinData, CoinPriceData
+from CoinViewData import Command
 
 
-class CoinPriceViewCmd:
+class CoinPriceViewCli:
     """UI class for getting prices in command editor
     """
 
@@ -113,3 +114,32 @@ class CoinPriceViewCmd:
         resdf_print = resdf.drop('route', axis=1)
         print(resdf_print)
         print()
+
+    def ui_root(self, coin_data: list[CoinData], currencies: list[str], date: str, output_csv: str, output_xls: str):
+        """For now:
+
+        1: Get current prices
+        2: Get historical prices
+        """
+        # Get current prices
+        current_date = datetime.now().strftime('%Y-%m-%d %H:%M')
+        price = self.price_prg.get_price_current(coin_data, currencies)
+        self.view.print_coinpricedata(
+            f'* Current price of coins, {current_date}', price)
+        self.view.write_to_file(price, output_csv, output_xls,
+                                f'_current_coins_{current_date}')
+
+        # Get historical price (only coingecko)
+        if self.price_prg.website == DbWebsiteName.coingecko.name:
+            price = self.price_prg.get_price_hist(coin_data, currencies, date)
+            self.view.print_coinpricedata('* History price of coins', price)
+            self.view.write_to_file(price, output_csv, output_xls,
+                                    f'_hist_{date}')
+
+        # Get histrical price via market chart
+        price = self.price_prg.get_price_hist_marketchart(
+            coin_data, currencies, date)
+        self.view.print_coinpricedata(
+            '* History price of coins via market_chart', price)
+        self.view.write_to_file(price, output_csv, output_xls,
+                                f'_hist_marketchart_{date}')
