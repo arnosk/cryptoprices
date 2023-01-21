@@ -71,13 +71,8 @@ class CoinPriceController():
         """Retrieve the coin data in database
         """
         if self.price_prg.website_id > 0:
-            query = f'''SELECT chain, siteid, {DbTableName.COIN.value}.name, symbol, base FROM {DbTableName.COIN.value} 
-                        LEFT JOIN {DbTableName.WEBSITE.value} ON 
-                        {DbTableName.COIN.value}.website_id = {DbTableName.WEBSITE.value}.id
-                        WHERE {DbTableName.WEBSITE.value}.name = "{self.get_website()}"
-                    '''
-            coins = self.db.query(query)
-            self.coin_data = [CoinData(chain=i[0], siteid=i[1], name=i[2], symbol=i[3], base=i[4])
+            coins = DbHelper.get_coins(self.db, '', self.price_prg.website_id)
+            self.coin_data = [CoinData(siteid=i[0], name=i[1], symbol=i[2], chain=i[3], base=i[4])
                               for i in coins]
 
     def run(self, coin_data: list[CoinData], date: str):
@@ -148,13 +143,8 @@ def __main__():
         coin_data = [CoinData(siteid=i, chain=chain_str, symbol=i)
                      for i in coins]
     elif cp.website_id > 0:
-        query = f'''SELECT chain, siteid, {DbTableName.COIN.value}.name, symbol, base FROM {DbTableName.COIN.value} 
-                    LEFT JOIN {DbTableName.WEBSITE.value} ON 
-                    {DbTableName.COIN.value}.website_id = {DbTableName.WEBSITE.value}.id
-                    WHERE {DbTableName.WEBSITE.value}.name = "{cp.website}"
-                '''
-        coins = db.query(query)
-        coin_data = [CoinData(chain=i[0], siteid=i[1], name=i[2], symbol=i[3], base=i[4])
+        coins = DbHelper.get_coins(db, '', cp.website_id)
+        coin_data = [CoinData(siteid=i[0], name=i[1], symbol=i[2], chain=i[3], base=i[4])
                      for i in coins]
     else:
         # providing default values for price retrieving
