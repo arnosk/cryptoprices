@@ -17,7 +17,7 @@ from CoinSearchAlcor import CoinSearchAlcor
 from CoinSearchCoingecko import CoinSearchCoingecko
 from CoinSearchCryptowatch import CoinSearchCryptowatch
 from CoinSearchViewCli import CoinSearchViewCli
-from CoinViewData import CoinInsertStatus
+from CoinViewData import DbResultStatus
 from Db import Db
 from DbHelper import DbTableName, DbWebsiteName
 from DbPostgresql import DbPostgresql
@@ -45,14 +45,38 @@ class CoinSearchController():
     def search_db(self, searchstr: str) -> list[CoinData]:
         return self.search_prg.search_id_db(self.db, searchstr)
 
-    def insert_coin(self, coin: CoinSearchData) -> CoinInsertStatus:
+    def delete_coin(self, coin: CoinData) -> DbResultStatus:
+        """Delete coin from database
+        """
+        # check if coin name, symbol is already in our database
+        if not self.db.has_connection():
+            return DbResultStatus.NO_DATABASE
+
+        # if table doesn't exist, create table coins
+        if not self.db.check_table(DbTableName.COIN.name):
+            return DbResultStatus.NO_TABLE
+
+        website_id = self.search_prg.get_website_id(self.db)
+
+        db_result = DbHelper.get_coin(self.db, coin.siteid, website_id)
+        if len(db_result) <= 0:
+            return DbResultStatus.COIN_NOT_EXISTS
+
+        # add new row to table coins
+        result = DbHelper.delete_coin(self.db, coin.siteid, website_id)
+        if result <= 0:
+            return DbResultStatus.DELETE_ERROR
+
+        return DbResultStatus.DELETE_OK
+
+    def insert_coin(self, coin: CoinSearchData) -> DbResultStatus:
         """Insert coin in database
 
         The coin is inserted into the table, if it doesn't already exists
         """
         # check if coin name, symbol is already in our database
         if not self.db.has_connection():
-            return CoinInsertStatus.NO_DATABASE
+            return DbResultStatus.NO_DATABASE
 
         # if table doesn't exist, create table coins
         if not self.db.check_table(DbTableName.COIN.name):
@@ -62,18 +86,18 @@ class CoinSearchController():
 
         db_result = DbHelper.get_coin(self.db, coin.coin.siteid, website_id)
         if len(db_result):
-            return CoinInsertStatus.COIN_EXISTS
+            return DbResultStatus.COIN_EXISTS
 
         # add new row to table coins
         result = DbHelper.insert_coin(self.db, coin.coin, website_id)
         if result <= 0:
-            return CoinInsertStatus.INSERT_ERROR
+            return DbResultStatus.INSERT_ERROR
 
         # safe coin images
         images_urls = {'thumb': coin.image_thumb,
                        'large': coin.image_large}
         self.search_prg.save_images(images_urls, coin.coin.name)
-        return CoinInsertStatus.INSERT_OK
+        return DbResultStatus.INSERT_OK
 
 
 def __main__():

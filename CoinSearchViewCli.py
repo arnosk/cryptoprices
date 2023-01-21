@@ -14,7 +14,7 @@ from typing import Protocol
 import pandas as pd
 
 from CoinData import CoinData, CoinSearchData
-from CoinViewData import CoinInsertStatus, Command
+from CoinViewData import Command, DbResultStatus
 
 
 class SearchController(Protocol):
@@ -27,7 +27,10 @@ class SearchController(Protocol):
     def search_db(self, searchstr: str) -> list[CoinData]:
         ...
 
-    def insert_coin(self, coin: CoinSearchData) -> CoinInsertStatus:
+    def delete_coin(self, coin: CoinData) -> DbResultStatus:
+        ...
+
+    def insert_coin(self, coin: CoinSearchData) -> DbResultStatus:
         ...
 
 
@@ -35,19 +38,35 @@ class CoinSearchViewCli:
     """UI class for searching in command editor
     """
 
+    def delete_coin(self,  control: SearchController, coin: CoinData) -> None:
+        """Try deleting coin via controller and show result
+        """
+        result = control.delete_coin(coin)
+        match result:
+            case DbResultStatus.NO_DATABASE:
+                print('No database connection')
+            case DbResultStatus.NO_TABLE:
+                print('Table not found')
+            case DbResultStatus.COIN_NOT_EXISTS:
+                print(f'Coin {coin.name} not found in db')
+            case DbResultStatus.DELETE_ERROR:
+                print(f'Error deleting {coin.name} from database')
+            case DbResultStatus.DELETE_OK:
+                print(f'{coin.name} deleted from database')
+
     def insert_coin(self,  control: SearchController, coin: CoinSearchData) -> None:
         """Try inserting coin via controller and show result
         """
         result = control.insert_coin(coin)
         match result:
-            case CoinInsertStatus.NO_DATABASE:
+            case DbResultStatus.NO_DATABASE:
                 print('No database connection')
-            case CoinInsertStatus.COIN_EXISTS:
+            case DbResultStatus.COIN_EXISTS:
                 print(
                     f'Database already has a row with the coin {coin.coin.name}')
-            case CoinInsertStatus.INSERT_ERROR:
+            case DbResultStatus.INSERT_ERROR:
                 print(f'Error adding {coin.coin.name} to database')
-            case CoinInsertStatus.INSERT_OK:
+            case DbResultStatus.INSERT_OK:
                 print(f'{coin.coin.name} added to the database')
 
     def print_items(self, items: list, heading_text: str, col_drop=[]):

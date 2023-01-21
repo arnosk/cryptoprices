@@ -22,13 +22,17 @@ class Command:
         self.arguments = [x.lower() for x in self.arguments]
 
 
-class CoinInsertStatus(Enum):
+class DbResultStatus(Enum):
     """Class for enumerating status
     """
     NO_DATABASE = auto()
+    NO_TABLE = auto()
     COIN_EXISTS = auto()
+    COIN_NOT_EXISTS = auto()
     INSERT_OK = auto()
     INSERT_ERROR = auto()
+    DELETE_OK = auto()
+    DELETE_ERROR = auto()
 
 
 class OutputFileType(Enum):
