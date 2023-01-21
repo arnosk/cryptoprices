@@ -10,7 +10,6 @@ import json
 import re
 import shlex
 import sys
-from ast import parse
 from dataclasses import asdict
 from datetime import datetime
 from pathlib import Path

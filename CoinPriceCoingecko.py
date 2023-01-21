@@ -22,7 +22,7 @@ class CoinPriceCoingecko(CoinPrice):
     """
 
     def __init__(self) -> None:
-        self.website = DbWebsiteName.COINGECKO.name
+        self.website = DbWebsiteName.COINGECKO.name.lower()
         super().__init__()
 
     def get_price_current(self, coindata: list[CoinData], currencies: list[str]) -> list[CoinPriceData]:

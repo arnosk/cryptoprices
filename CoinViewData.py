@@ -48,3 +48,11 @@ class PriceFunction(Enum):
     CURRENT = 'Current'
     HISTORICAL_SIMPLE = 'HistSimple'
     HISTORICAL_MARKETCHART = 'HistMarketchart'
+
+
+class SearchFunction(Enum):
+    """Class for naming search type function
+    """
+    INSERT = 'Insert'
+    DELETE = 'Delete'
+    NONE = ''

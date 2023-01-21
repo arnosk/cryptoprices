@@ -20,7 +20,7 @@ class CoinSearchCryptowatch(CoinSearch):
     """
 
     def __init__(self) -> None:
-        self.website = DbWebsiteName.CRYPTOWATCH.name
+        self.website = DbWebsiteName.CRYPTOWATCH.name.lower()
         self.assets: list = []
         self.id_assets: int = 0
         super().__init__()

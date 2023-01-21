@@ -71,10 +71,10 @@ class CoinPriceController():
         """Retrieve the coin data in database
         """
         if self.price_prg.website_id > 0:
-            query = f'''SELECT chain, siteid, {DbTableName.COIN.name}.name, symbol, base FROM {DbTableName.COIN.name} 
-                        LEFT JOIN {DbTableName.WEBSITE.name} ON 
-                        {DbTableName.COIN.name}.website_id = {DbTableName.WEBSITE.name}.id
-                        WHERE {DbTableName.WEBSITE.name}.name = "{self.get_website()}"
+            query = f'''SELECT chain, siteid, {DbTableName.COIN.value}.name, symbol, base FROM {DbTableName.COIN.value} 
+                        LEFT JOIN {DbTableName.WEBSITE.value} ON 
+                        {DbTableName.COIN.value}.website_id = {DbTableName.WEBSITE.value}.id
+                        WHERE {DbTableName.WEBSITE.value}.name = "{self.get_website()}"
                     '''
             coins = self.db.query(query)
             self.coin_data = [CoinData(chain=i[0], siteid=i[1], name=i[2], symbol=i[3], base=i[4])
@@ -115,12 +115,12 @@ def __main__():
     max_markets_per_pair = args.max_markets_per_pair
 
     # init session
-    search_website = args.website
+    search_website = str(args.website).lower()
     chain_str = ''
-    if search_website == DbWebsiteName.ALCOR.name:
+    if search_website == DbWebsiteName.ALCOR.name.lower():
         cp = CoinPriceAlcor()
         chain_str = args.chain if args.chain != None else 'proton'
-    elif search_website == DbWebsiteName.CRYPTOWATCH.name:
+    elif search_website == DbWebsiteName.CRYPTOWATCH.name.lower():
         cp = CoinPriceCryptowatch(
             strictness=strictness,
             max_markets_per_pair=max_markets_per_pair)
@@ -137,7 +137,7 @@ def __main__():
 
     # check if database and table coins exists and has values
     db.check_db()
-    db_table_exist = db.check_table(DbTableName.COIN.name)
+    db_table_exist = db.check_table(DbTableName.COIN.value)
     if db_table_exist:
         cp.website_id = DbHelper.get_website_id(db, cp.website)
 
@@ -148,21 +148,21 @@ def __main__():
         coin_data = [CoinData(siteid=i, chain=chain_str, symbol=i)
                      for i in coins]
     elif cp.website_id > 0:
-        query = f'''SELECT chain, siteid, {DbTableName.COIN.name}.name, symbol, base FROM {DbTableName.COIN.name} 
-                    LEFT JOIN {DbTableName.WEBSITE.name} ON 
-                    {DbTableName.COIN.name}.website_id = {DbTableName.WEBSITE.name}.id
-                    WHERE {DbTableName.WEBSITE.name}.name = "{cp.website}"
+        query = f'''SELECT chain, siteid, {DbTableName.COIN.value}.name, symbol, base FROM {DbTableName.COIN.value} 
+                    LEFT JOIN {DbTableName.WEBSITE.value} ON 
+                    {DbTableName.COIN.value}.website_id = {DbTableName.WEBSITE.value}.id
+                    WHERE {DbTableName.WEBSITE.value}.name = "{cp.website}"
                 '''
         coins = db.query(query)
         coin_data = [CoinData(chain=i[0], siteid=i[1], name=i[2], symbol=i[3], base=i[4])
                      for i in coins]
     else:
         # providing default values for price retrieving
-        if search_website == DbWebsiteName.ALCOR.name:
+        if search_website == DbWebsiteName.ALCOR.name.lower():
             coins = [['proton', '157'], ['wax', '158'], ['proton', '13'], ['wax', '67'],
                      ['proton', '5'], ['eos', '2'], ['telos', '34'], ['proton', '96']]
             coin_data = [CoinData(siteid=i[1], chain=i[0]) for i in coins]
-        elif search_website == DbWebsiteName.CRYPTOWATCH.name:
+        elif search_website == DbWebsiteName.CRYPTOWATCH.name.lower():
             coins = ['btc', 'ltc', 'ada', 'sol', 'ardr', 'xpr']
             coin_data = [CoinData(siteid=i, symbol=i) for i in coins]
         else:

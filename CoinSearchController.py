@@ -53,7 +53,7 @@ class CoinSearchController():
             return DbResultStatus.NO_DATABASE
 
         # if table doesn't exist, create table coins
-        if not self.db.check_table(DbTableName.COIN.name):
+        if not self.db.check_table(DbTableName.COIN.value):
             return DbResultStatus.NO_TABLE
 
         website_id = self.search_prg.get_website_id(self.db)
@@ -79,7 +79,7 @@ class CoinSearchController():
             return DbResultStatus.NO_DATABASE
 
         # if table doesn't exist, create table coins
-        if not self.db.check_table(DbTableName.COIN.name):
+        if not self.db.check_table(DbTableName.COIN.value):
             DbHelper.create_coin_table(self.db)
 
         website_id = self.search_prg.get_website_id(self.db)
@@ -104,8 +104,6 @@ def __main__():
     """Search assets and store in database
     """
     argparser = argparse.ArgumentParser()
-    argparser.add_argument('-c', '--coin', type=str,
-                           help='Coin name to search')
     argparser.add_argument('-w', '--website', type=str,
                            help='Website / exchange to search on')
     argparser.add_argument('-ch', '--chain', type=str,
@@ -115,7 +113,6 @@ def __main__():
     argparser.add_argument('-s', '--searchweb', action='store_true',
                            help='Coingecko: Search directly from CoinGecko website instead or first retrieving list of all assets')
     args = argparser.parse_args()
-    coin_search = args.coin
     download_all_images = args.image
 
     if args.searchweb:
@@ -131,9 +128,10 @@ def __main__():
         chains = config.ALCOR_CHAINS
 
     # init session
-    if args.website == DbWebsiteName.ALCOR.name:
+    search_website = str(args.website).lower()
+    if search_website == DbWebsiteName.ALCOR.name.lower():
         cs = CoinSearchAlcor(chains=chains)
-    elif args.website == DbWebsiteName.CRYPTOWATCH.name:
+    elif search_website == DbWebsiteName.CRYPTOWATCH.name.lower():
         cs = CoinSearchCryptowatch()
     else:
         cs = CoinSearchCoingecko(search_method=search_method)
@@ -146,7 +144,7 @@ def __main__():
         raise RuntimeError('No database configuration')
 
     db.check_db()
-    db_table_exist = db.check_table(DbTableName.COIN.name)
+    db_table_exist = db.check_table(DbTableName.COIN.value)
 
     if download_all_images:
         if db_table_exist:

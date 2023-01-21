@@ -14,7 +14,7 @@ from typing import Protocol
 import pandas as pd
 
 from CoinData import CoinData, CoinSearchData
-from CoinViewData import Command, DbResultStatus
+from CoinViewData import Command, DbResultStatus, SearchFunction
 
 
 class SearchController(Protocol):
@@ -37,6 +37,9 @@ class SearchController(Protocol):
 class CoinSearchViewCli:
     """UI class for searching in command editor
     """
+
+    def __init__(self) -> None:
+        self.last_fn: SearchFunction = SearchFunction.NONE
 
     def delete_coin(self,  control: SearchController, coin: CoinData) -> None:
         """Try deleting coin via controller and show result
@@ -90,29 +93,39 @@ class CoinSearchViewCli:
         else:
             print(f'Coin not found from {heading_text}')
 
+    def ui_delete(self, control: SearchController) -> list[CoinData]:
+        """UI for delete a coin
+        """
+        print(f'Search database for deletion')
+        searchstr = input('Search for coin: ')
+        return self.search_db(control, searchstr)
+
     def ui_search(self, control: SearchController) -> list[CoinSearchData]:
         """UI for input search string
         """
-        print('New search')
+        print(f'New search on {control.get_website()}')
         searchstr = input('Search for coin: ')
+        self.search_db(control, searchstr)
+        return self.search_website(control, searchstr)
 
+    def search_db(self, control: SearchController, searchstr: str) -> list[CoinData]:
         # Show result from search in databes database
-        db_result = control.search_db(searchstr)
-        self.print_items(db_result, 'Database')
+        result = control.search_db(searchstr)
+        self.print_items(result, 'Database')
+        return result
 
+    def search_website(self, control: SearchController, searchstr: str) -> list[CoinSearchData]:
         # Do search on website / exchange assets
-        cs_result = control.search_website(searchstr)
-        self.print_items(cs_result, control.get_website())
-
-        return cs_result
+        result = control.search_website(searchstr)
+        self.print_items(result, control.get_website())
+        return result
 
     def get_main_input_command(self, max_row: int) -> Command:
         """ The main user input
         """
-        if max_row < 0:
-            message = '(N)ew search, or (Q)uit : '
-        else:
-            message = 'Select row nr for coin to store in database, or (N)ew search, or (Q)uit : '
+        message = '(N)ew search, (D)elete or (Q)uit: '
+        if max_row >= 0:
+            message = f'Select row nr for {self.last_fn.value}, or {message}'
 
         input_str = input(message)
         if input_str == '':
@@ -128,14 +141,25 @@ class CoinSearchViewCli:
         After search select row to insert coin into the table, if it doesn't already exists
         """
         print(f'Searching assets on {control.get_website()}')
-        coinsearchdata = []
+        coinsearchdata: list[CoinSearchData] = []
+        coindeletedata: list[CoinData] = []
         while True:
-            maximum = len(coinsearchdata) - 1
+            match self.last_fn:
+                case SearchFunction.INSERT:
+                    maximum = len(coinsearchdata) - 1
+                case SearchFunction.DELETE:
+                    maximum = len(coindeletedata) - 1
+                case _:
+                    maximum = 0
             cmd = self.get_main_input_command(maximum)
 
             match cmd:
                 case Command(command='new' | 'n'):
                     coinsearchdata = self.ui_search(control)
+                    self.last_fn = SearchFunction.INSERT
+                case Command(command='delete' | 'd'):
+                    coindeletedata = self.ui_delete(control)
+                    self.last_fn = SearchFunction.DELETE
                 case Command(command='quit' | 'q' | 'exit' | 'e', arguments=['--force' | '-f', *rest]):
                     print("Sending SIGTERM to all processes and quitting the program.")
                     sys.exit('Exiting')
@@ -148,6 +172,14 @@ class CoinSearchViewCli:
                         print(f'Unknown command {cmd.command!r}.')
                     else:
                         if (value >= 0 and value <= maximum):
-                            self.insert_coin(control, coinsearchdata[value])
+                            match self.last_fn:
+                                case SearchFunction.INSERT:
+                                    self.insert_coin(
+                                        control, coinsearchdata[value])
+                                case SearchFunction.DELETE:
+                                    self.delete_coin(
+                                        control, coindeletedata[value])
+                                case _:
+                                    print('No row to select! Try again.')
                         else:
                             print('No correct row number! Try again.')

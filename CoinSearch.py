@@ -50,12 +50,10 @@ class CoinSearch(ABC):
     def search_id_db(self, db: Db, search: str) -> list[CoinData]:
         """Search for coin in database
 
-        db = database
-        search = coin name to be searched
         return value = list with search results
         """
         coindata = []
-        if db.check_table(DbTableName.COIN.name):
+        if db.check_table(DbTableName.COIN.value):
             self.website_id = DbHelper.get_website_id(db, self.website)
             if self.website_id > 0:
                 db_result = DbHelper.get_coins(db, search, self.website_id)
