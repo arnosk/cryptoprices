@@ -15,16 +15,16 @@ from Db import Db
 class DbTableName(Enum):
     """Class for enumerating table names
     """
-    coin = auto()
-    website = auto()
+    COIN = auto()
+    WEBSITE = auto()
 
 
 class DbWebsiteName(Enum):
     """Class for enumerating website / exchange names
     """
-    coingecko = auto()
-    cryptowatch = auto()
-    alcor = auto()
+    COINGECKO = auto()
+    CRYPTOWATCH = auto()
+    ALCOR = auto()
 
 
 def create_coin_table(db: Db):
@@ -32,7 +32,7 @@ def create_coin_table(db: Db):
 
     """
     primary_key = db.get_create_primary_key_str()
-    query = f'''CREATE TABLE {DbTableName.website.name} (
+    query = f'''CREATE TABLE {DbTableName.WEBSITE.name} (
                 id {primary_key},
                 name VARCHAR(80) NOT NULL,
                 url VARCHAR(80) NOT NULL,
@@ -40,7 +40,7 @@ def create_coin_table(db: Db):
                 )
             '''
     db.execute(query)
-    query = f'''CREATE TABLE {DbTableName.coin.name} (
+    query = f'''CREATE TABLE {DbTableName.COIN.name} (
                 id {primary_key},
                 website_id INTEGER NOT NULL,
                 chain VARCHAR(80),
@@ -48,7 +48,7 @@ def create_coin_table(db: Db):
                 name VARCHAR(80) NOT NULL,
                 symbol VARCHAR(40) NOT NULL,
                 base VARCHAR(80),
-                CONSTRAINT FK_Website FOREIGN KEY (website_id) REFERENCES {DbTableName.website.name}(id)
+                CONSTRAINT FK_Website FOREIGN KEY (website_id) REFERENCES {DbTableName.WEBSITE.name}(id)
                 )
             '''
     db.execute(query)
@@ -57,7 +57,7 @@ def create_coin_table(db: Db):
 def insert_website(db: Db, website: str) -> int:
     """Insert definition of the website or exchange
     """
-    query = f'INSERT INTO {DbTableName.website.name} (name, url) VALUES(?,?)'
+    query = f'INSERT INTO {DbTableName.WEBSITE.name} (name, url) VALUES(?,?)'
     args = (website, 'https://')
     res = db.execute(query, args)
     db.commit()
@@ -67,7 +67,7 @@ def insert_website(db: Db, website: str) -> int:
 def get_website_id(db: Db, website: str) -> int:
     """Retrieves the website id 
     """
-    query = f'SELECT id FROM {DbTableName.website.name} WHERE name = ?'
+    query = f'SELECT id FROM {DbTableName.WEBSITE.name} WHERE name = ?'
     args = (website,)
     res = db.query(query, args)
     if len(res) > 0:
@@ -79,11 +79,9 @@ def get_website_id(db: Db, website: str) -> int:
 def insert_coin(db: Db, coin: CoinData, website_id: int) -> int:
     """Insert a new coin to the coins table
 
-    db = instance of Db
-    coin = search data with retrieved coin info from web
     return value = rowcount or total changes 
     """
-    query = f'INSERT INTO {DbTableName.coin.name} (website_id, siteid, name, symbol, chain, base) VALUES(?,?,?,?,?,?)'
+    query = f'INSERT INTO {DbTableName.COIN.name} (website_id, siteid, name, symbol, chain, base) VALUES(?,?,?,?,?,?)'
     args = (website_id,
             coin.siteid,
             coin.name,  # also quote
@@ -95,10 +93,22 @@ def insert_coin(db: Db, coin: CoinData, website_id: int) -> int:
     return res
 
 
+def delete_coin(db: Db, siteid: str, website_id: int) -> int:
+    """Delete an existing coin 
+
+    return value = rowcount or total changes 
+    """
+    query = f'DELETE FROM {DbTableName.COIN.name} WHERE siteid=? AND website_id=?'
+    args = (siteid, website_id)
+    res = db.execute(query, args)
+    db.commit()
+    return res
+
+
 def get_coin(db: Db, siteid: str, website_id: int) -> list:
     """Retrieves the coin from id 
     """
-    query = f'SELECT * FROM {DbTableName.coin.name} WHERE siteid=? AND website_id=?'
+    query = f'SELECT * FROM {DbTableName.COIN.name} WHERE siteid=? AND website_id=?'
     args = (siteid, website_id)
     res = db.query(query, args)
     return res
@@ -107,7 +117,7 @@ def get_coin(db: Db, siteid: str, website_id: int) -> list:
 def get_coins(db: Db, search: str, website_id: int) -> list:
     """Retrieves coins from search string
     """
-    query = f'''SELECT siteid, name, symbol, chain, base FROM {DbTableName.coin.name} WHERE
+    query = f'''SELECT siteid, name, symbol, chain, base FROM {DbTableName.COIN.name} WHERE
                 website_id = {website_id} AND
                 (siteid like ? or
                 name like ? or

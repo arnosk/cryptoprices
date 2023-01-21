@@ -55,7 +55,7 @@ class CoinSearchController():
             return CoinInsertStatus.NO_DATABASE
 
         # if table doesn't exist, create table coins
-        if not self.db.check_table(DbTableName.coin.name):
+        if not self.db.check_table(DbTableName.COIN.name):
             DbHelper.create_coin_table(self.db)
 
         website_id = self.search_prg.get_website_id(self.db)
@@ -107,9 +107,9 @@ def __main__():
         chains = config.ALCOR_CHAINS
 
     # init session
-    if args.website == DbWebsiteName.alcor.name:
+    if args.website == DbWebsiteName.ALCOR.name:
         cs = CoinSearchAlcor(chains=chains)
-    elif args.website == DbWebsiteName.cryptowatch.name:
+    elif args.website == DbWebsiteName.CRYPTOWATCH.name:
         cs = CoinSearchCryptowatch()
     else:
         cs = CoinSearchCoingecko(search_method=search_method)
@@ -122,7 +122,7 @@ def __main__():
         raise RuntimeError('No database configuration')
 
     db.check_db()
-    db_table_exist = db.check_table(DbTableName.coin.name)
+    db_table_exist = db.check_table(DbTableName.COIN.name)
 
     if download_all_images:
         if db_table_exist:

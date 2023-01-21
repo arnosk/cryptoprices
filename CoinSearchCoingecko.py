@@ -40,7 +40,7 @@ class CoinSearchCoingecko(CoinSearch):
     """
 
     def __init__(self, search_method: SearchMethod = SearchMethod.WEB) -> None:
-        self.website = DbWebsiteName.coingecko.name
+        self.website = DbWebsiteName.COINGECKO.name
         self.assets: list = []
         self.id_assets: int = 0
         self.search_method: SearchMethod = search_method

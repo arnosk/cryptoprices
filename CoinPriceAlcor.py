@@ -23,7 +23,7 @@ class CoinPriceAlcor(CoinPrice):
     """
 
     def __init__(self) -> None:
-        self.website = DbWebsiteName.alcor.name
+        self.website = DbWebsiteName.ALCOR.name
         self.markets: dict[str, CoinMarketData] = {}
         super().__init__()
 

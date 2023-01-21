@@ -55,7 +55,7 @@ class CoinSearch(ABC):
         return value = list with search results
         """
         coindata = []
-        if db.check_table(DbTableName.coin.name):
+        if db.check_table(DbTableName.COIN.name):
             self.website_id = DbHelper.get_website_id(db, self.website)
             if self.website_id > 0:
                 db_result = DbHelper.get_coins(db, search, self.website_id)

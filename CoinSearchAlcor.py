@@ -20,7 +20,7 @@ class CoinSearchAlcor(CoinSearch):
     """
 
     def __init__(self, chains: list[str]) -> None:
-        self.website = DbWebsiteName.alcor.name
+        self.website = DbWebsiteName.ALCOR.name
         self.assets: dict = {}
         self.id_assets: int = 0
         self.chains: list[str] = chains

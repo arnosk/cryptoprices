@@ -25,7 +25,7 @@ class CoinPriceCryptowatch(CoinPrice):
     """
 
     def __init__(self, strictness: int = 0, max_markets_per_pair: int = 0) -> None:
-        self.website = DbWebsiteName.cryptowatch.name
+        self.website = DbWebsiteName.CRYPTOWATCH.name
         self.markets: list[CoinMarketData] = []
         self.id_coindata: int = 0
         self.strictness: int = strictness
