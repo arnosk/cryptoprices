@@ -30,6 +30,7 @@ class CoinSearch(ABC):
     def __init__(self) -> None:
         self.website_id: int = 0
         self.req = RequestHelper()
+        self.search_method: SearchMethod
 
     @abstractmethod
     def search(self, coin_search: str) -> list[CoinSearchData]:
@@ -42,7 +43,11 @@ class CoinSearch(ABC):
         """
         pass
 
+    def set_search_method(self, search_method: SearchMethod) -> None:
+        pass
+
     # todo: move to other class or fn for db interface...
+
     def search_db(self, db: Db, search: str) -> list[CoinData]:
         """Search for coin in database
         """

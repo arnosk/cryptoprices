@@ -14,6 +14,7 @@ from typing import Protocol
 import pandas as pd
 
 from CoinData import CoinData, CoinSearchData
+from CoinSearch import SearchMethod
 from CoinViewData import Command, DbResultStatus, SearchFunction
 
 
@@ -31,6 +32,12 @@ class SearchController(Protocol):
         ...
 
     def insert_coin(self, coin: CoinSearchData) -> DbResultStatus:
+        ...
+
+    def toggle_search_method(self) -> None:
+        ...
+
+    def get_search_method(self) -> SearchMethod:
         ...
 
 
@@ -97,7 +104,7 @@ class CoinSearchViewCli:
         """UI for delete a coin
         """
         print(f'Search database for deletion')
-        searchstr = input('Search for coin: ')
+        searchstr = input('Search for coin <Enter for all>: ')
         return self.search_db(control, searchstr)
 
     def ui_search(self, control: SearchController) -> list[CoinSearchData]:
@@ -123,7 +130,7 @@ class CoinSearchViewCli:
     def get_main_input_command(self, max_row: int) -> Command:
         """ The main user input
         """
-        message = '(N)ew search, (D)elete or (Q)uit: '
+        message = '(N)ew search, (D)elete, (T)oggle search method or (Q)uit: '
         if max_row >= 0:
             message = f'Select row nr for {self.last_fn.value}, or {message}'
 
@@ -150,13 +157,17 @@ class CoinSearchViewCli:
                 case SearchFunction.DELETE:
                     maximum = len(coindeletedata) - 1
                 case _:
-                    maximum = 0
+                    maximum = -1
             cmd = self.get_main_input_command(maximum)
 
             match cmd:
                 case Command(command='new' | 'n'):
                     coinsearchdata = self.ui_search(control)
                     self.last_fn = SearchFunction.INSERT
+                case Command(command='toggle' | 't'):
+                    control.toggle_search_method()
+                    print(
+                        f'Search method set to: {control.get_search_method().name}')
                 case Command(command='delete' | 'd'):
                     coindeletedata = self.ui_delete(control)
                     self.last_fn = SearchFunction.DELETE

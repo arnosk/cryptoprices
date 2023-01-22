@@ -101,6 +101,18 @@ class CoinSearchController():
         self.search_prg.save_images(images_urls, coin.coin.name)
         return DbResultStatus.INSERT_OK
 
+    def toggle_search_method(self) -> None:
+        """Change the search method
+        In case the search program has multiple (Coingecko)
+        """
+        if self.search_prg.search_method == SearchMethod.WEB:
+            self.search_prg.set_search_method(SearchMethod.ASSETS)
+        else:
+            self.search_prg.set_search_method(SearchMethod.WEB)
+
+    def get_search_method(self) -> SearchMethod:
+        return self.search_prg.search_method
+
 
 def __main__():
     """Search assets and store in database
