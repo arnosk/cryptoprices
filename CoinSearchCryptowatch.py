@@ -30,10 +30,6 @@ class CoinSearchCryptowatch(CoinSearch):
 
     def search_id_assets(self, search_str: str) -> list[CoinSearchData]:
         """Search for coin in list of all assets
-
-        search_str = string to search in assets
-        assets = list of assets from Cryptowatch
-        return value = list with search results
         """
         s = search_str.lower()
         resp_coins = [item for item in self.assets
@@ -47,8 +43,6 @@ class CoinSearchCryptowatch(CoinSearch):
         """Convert result from site to list of CoinSearchData
 
         resp = list from the web
-        return value = list of CoinSearchData
-
         example of resp['result']:
                 [	{		
                     id:	182298
@@ -70,10 +64,6 @@ class CoinSearchCryptowatch(CoinSearch):
 
     def search(self, coin_search: str) -> list[CoinSearchData]:
         """Search coins from Cryptowatch assets
-
-        db = instance of Db
-        coin_search = string to search in assets
-        assets = list of string with assets from Cryptowatch
         """
         # check if assets are already loaded for today
         id_date = helperfunc.get_date_identifier()
@@ -88,8 +78,6 @@ class CoinSearchCryptowatch(CoinSearch):
 
     def get_all_assets(self) -> list:
         '''Retrieve all assets from cryptowatch api
-
-        returns = a list of string with assets from Alcor
         '''
         url = f'{config.CRYPTOWATCH_URL}/assets'
         resp = self.req.get_request_response(url)

@@ -51,9 +51,6 @@ class CoinSearchCoingecko(CoinSearch):
 
     def save_images(self, image_urls: dict, coin_name: str):
         """Save image files for one coin
-
-        image_urls = dict if urls for images
-        coin_name = string with name of coin
         """
         folder = config.IMAGE_PATH
         if 'thumb' in image_urls:
@@ -68,8 +65,6 @@ class CoinSearchCoingecko(CoinSearch):
 
     def download_images(self, db: Db):
         """Download image files for all coins in database from Coingecko
-
-        db = instance of Db
         """
         # Get all coingeckoid's from database
         self.website_id = DbHelper.get_website_id(db, self.website)
@@ -94,10 +89,6 @@ class CoinSearchCoingecko(CoinSearch):
 
     def search_id_assets(self, search_str: str) -> list[CoinSearchData]:
         """Search for coin in list of all assets
-
-        search_str: str = string to search in assets
-        assets = list of assets from Alcor
-        return value = list with search results
         """
         s = search_str.lower()
         resp_coins = [item for item in self.assets
@@ -111,8 +102,6 @@ class CoinSearchCoingecko(CoinSearch):
         """Convert result from site to list of CoinSearchData
 
         resp = list from the web
-        return value = list of CoinSearchData
-
         example of resp['result']:
         [   {				
                 id:	0chain,		
@@ -134,9 +123,6 @@ class CoinSearchCoingecko(CoinSearch):
 
     def search_id_web(self, search_str: str) -> list[CoinSearchData]:
         """Search request to Coingecko
-
-        search_str = string to search in assets
-        return value = list with search results
         """
         url = f'{config.COINGECKO_URL}/search?query={search_str}'
         resp = self.req.get_request_response(url)
@@ -147,8 +133,6 @@ class CoinSearchCoingecko(CoinSearch):
         """Convert result from site to list of CoinSearchData
 
         resp = list from the web
-        return value = list of CoinSearchData
-
         example of resp['coins']:
             [	{		
                     id:	bitcoin,
@@ -173,9 +157,6 @@ class CoinSearchCoingecko(CoinSearch):
 
     def search(self, coin_search: str) -> list[CoinSearchData]:
         """Search from exchange (Coingecko)
-
-        db = instance of Db
-        coin_search = string to search in assets
         """
         if self.search_method == SearchMethod.ASSETS:
             # check if assets are already loaded for today

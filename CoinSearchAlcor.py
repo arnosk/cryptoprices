@@ -31,10 +31,6 @@ class CoinSearchAlcor(CoinSearch):
 
     def search_id_assets(self, search_str: str) -> list[CoinSearchData]:
         """Search for coin in list of all assets
-
-        search_str: str = string to search in assets
-        assets = list of assets from Alcor
-        return value = list with search results
         """
         s = search_str.lower()
         resp_coins = []
@@ -52,8 +48,6 @@ class CoinSearchAlcor(CoinSearch):
         """Convert result from site to list of CoinSearchData
 
         resp = list from the web
-        return value = list of CoinSearchData
-
         {'id': 157,
         'base_token': {"symbol":{"name":"XUSDC","precision":6},"contract":"xtokens","str":"XUSDC@xtokens"},
         'quote_token': {"symbol":{"name":"FREEOS","precision":4},"contract":"freeostokens","str":"FREEOS@freeostokens"},
@@ -78,15 +72,7 @@ class CoinSearchAlcor(CoinSearch):
         return coinsearch
 
     def search(self, coin_search: str) -> list[CoinSearchData]:
-        """Search coins in own database (if table exists)
-
-        Search coins from Alcor assets (already in assets)
-        Show the results
-
-        db = instance of Db
-        coin_search = string to search in assets
-        chains = list of the alcor chains to search on
-        self.assets = dictionary where each key is a chain with a list of string with assets from Alcor
+        """Search coins in own database
         """
         # check if assets are already loaded for all chains and today
         id_date = helperfunc.get_date_identifier()
@@ -101,8 +87,6 @@ class CoinSearchAlcor(CoinSearch):
 
     def get_all_assets(self, chains: list) -> dict:
         '''Retrieve all assets from alcor api
-
-        chains = list of chains in alcor ecosystem
 
         returns = dictionary where each key is a chain with a list of string with assets from Alcor
         '''

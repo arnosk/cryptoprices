@@ -151,6 +151,7 @@ def __main__():
         cs = CoinSearchCoingecko()
         cs.download_images(db)
         print('Done downloading images')
+        exit()
 
     view = CoinSearchViewCli()
     app = CoinSearchController(view, cs, db)
