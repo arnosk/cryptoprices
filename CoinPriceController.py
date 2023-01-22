@@ -18,7 +18,7 @@ from CoinPriceCoingecko import CoinPriceCoingecko
 from CoinPriceCryptowatch import CoinPriceCryptowatch
 from CoinPriceViewCli import CoinPriceViewCli
 from Db import Db
-from DbHelper import DbTableName, DbWebsiteName
+from DbHelper import DbWebsiteName
 from DbPostgresql import DbPostgresql
 from DbSqlite3 import DbSqlite3
 
@@ -36,6 +36,8 @@ class CoinPriceController():
             self.view.update_progress_text)
         self.price_prg.attach_view_update_waiting_time(
             self.view.update_waiting_time)
+        self.price_prg.website_id = DbHelper.get_website_id(
+            self.db, self.price_prg.website)
         self.coin_data: list[CoinData] = []
         self.currency_data: list[str] = ['usd', 'eur', 'btc', 'eth']
 
@@ -132,9 +134,8 @@ def __main__():
 
     # check if database and table coins exists and has values
     db.check_db()
-    db_table_exist = db.check_table(DbTableName.COIN.value)
-    if db_table_exist:
-        cp.website_id = DbHelper.get_website_id(db, cp.website)
+    view = CoinPriceViewCli()
+    app = CoinPriceController(view, cp, db)
 
     # Determine which coins to retrieve prices for
     # From arguments, from database, or take default
@@ -160,13 +161,6 @@ def __main__():
                      'solana', 'ardor', 'proton']
             coin_data = [CoinData(siteid=i) for i in coins]
 
-    # for coingecko, token prices
-    chain = 'binance-smart-chain'
-    contracts = ['0x62858686119135cc00C4A3102b436a0eB314D402',
-                 '0xacfc95585d80ab62f67a14c566c1b7a49fe91167']
-
-    view = CoinPriceViewCli()
-    app = CoinPriceController(view, cp, db)
     app.run(coin_data=coin_data, date=date)
 
 

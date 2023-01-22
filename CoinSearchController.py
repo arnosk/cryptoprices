@@ -19,7 +19,7 @@ from CoinSearchCryptowatch import CoinSearchCryptowatch
 from CoinSearchViewCli import CoinSearchViewCli
 from CoinViewData import DbResultStatus
 from Db import Db
-from DbHelper import DbTableName, DbWebsiteName
+from DbHelper import DbWebsiteName
 from DbPostgresql import DbPostgresql
 from DbSqlite3 import DbSqlite3
 
@@ -32,6 +32,8 @@ class CoinSearchController():
         self.view = view
         self.search_prg = search_prg
         self.db = db
+        self.search_prg.website_id = DbHelper.get_website_id(
+            self.db, self.search_prg.website)
 
     def run(self):
         self.view.ui_root(self)
@@ -43,7 +45,7 @@ class CoinSearchController():
         return self.search_prg.search(searchstr)
 
     def search_db(self, searchstr: str) -> list[CoinData]:
-        return self.search_prg.search_id_db(self.db, searchstr)
+        return self.search_prg.search_db(self.db, searchstr)
 
     def delete_coin(self, coin: CoinData) -> DbResultStatus:
         """Delete coin from database
@@ -53,7 +55,7 @@ class CoinSearchController():
             return DbResultStatus.NO_DATABASE
 
         # if table doesn't exist, create table coins
-        if not self.db.check_table(DbTableName.COIN.value):
+        if not DbHelper.check_coin_table(self.db):
             return DbResultStatus.NO_TABLE
 
         website_id = self.search_prg.get_website_id(self.db)
@@ -79,7 +81,7 @@ class CoinSearchController():
             return DbResultStatus.NO_DATABASE
 
         # if table doesn't exist, create table coins
-        if not self.db.check_table(DbTableName.COIN.value):
+        if not DbHelper.check_coin_table(self.db):
             DbHelper.create_coin_table(self.db)
 
         website_id = self.search_prg.get_website_id(self.db)
@@ -144,16 +146,11 @@ def __main__():
         raise RuntimeError('No database configuration')
 
     db.check_db()
-    db_table_exist = db.check_table(DbTableName.COIN.value)
 
     if download_all_images:
-        if db_table_exist:
-            cs = CoinSearchCoingecko()
-            cs.download_images(db)
-            print('Done downloading images')
-        else:
-            print('No database, exiting')
-        exit()
+        cs = CoinSearchCoingecko()
+        cs.download_images(db)
+        print('Done downloading images')
 
     view = CoinSearchViewCli()
     app = CoinSearchController(view, cs, db)

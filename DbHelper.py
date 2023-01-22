@@ -129,3 +129,9 @@ def get_coins(db: Db, search: str, website_id: int) -> list:
     args = (f'%{search}%',)*n
     res = db.query(query, args)
     return res
+
+
+def check_coin_table(db: Db) -> bool:
+    """Check existance of coin table
+    """
+    return db.check_table(DbTableName.COIN.value)
