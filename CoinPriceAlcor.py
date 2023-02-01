@@ -76,6 +76,10 @@ class CoinPriceAlcor(CoinPrice):
         params['from'] = ts
         params['to'] = ts
 
+        # markets must be loaded
+        if len(self.markets) == 0:
+            self.get_price_current(coindata, currencies)
+
         prices: list[CoinPriceData] = []
         i = 0
         for coin in coindata:
