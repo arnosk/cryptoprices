@@ -140,7 +140,7 @@ class RequestHelper():
             self.view_update_waiting_time(i)
             time.sleep(1)
 
-    def attach_view_update_waiting_time(self, fn_waiting_time) -> None:
+    def attach_view_update_waiting_time(self, fn_waiting_time: Callable[[int], None]) -> None:
         """Set the viewers waiting time function to the coinprice program
         """
         self.view_update_waiting_time = fn_waiting_time
