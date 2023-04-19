@@ -20,7 +20,7 @@ class RequestHelper():
 
     def __init__(self):
         self.session = self._init_session()
-        self.view_update_waiting_time = Callable[[int], None]
+        self.view_update_waiting_time: Callable[[int], None]
 
     @staticmethod
     def _init_session():

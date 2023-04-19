@@ -22,8 +22,8 @@ class CoinPrice(ABC):
         self.website_id: int = 0
         self.req = RequestHelper()
         self.nr_try_max: int = 10
-        self.view_update_progress = Callable[[int, int], None]
-        self.view_update_progress_text = Callable[[str], None]
+        self.view_update_progress: Callable[[int, int], None]
+        self.view_update_progress_text: Callable[[str], None]
 
     @abstractmethod
     def get_price_current(self, coindata: list[CoinData], currencies: list[str]) -> list[CoinPriceData]:
