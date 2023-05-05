@@ -30,8 +30,8 @@ import config
 import src.db.DbHelper as DbHelper
 import src.func.helperfunc as helperfunc
 from src.data.CoinData import CoinData, CoinSearchData
+from src.data.DbData import DbWebsiteName
 from src.db.Db import Db
-from src.db.DbHelper import DbWebsiteName
 from src.models.CoinSearch import CoinSearch, SearchMethod
 
 

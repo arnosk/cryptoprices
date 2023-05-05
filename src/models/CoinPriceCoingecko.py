@@ -13,7 +13,7 @@ import math
 import config
 import src.func.helperfunc as helperfunc
 from src.data.CoinData import CoinData, CoinPriceData
-from src.db.DbHelper import DbWebsiteName
+from src.data.DbData import DbWebsiteName
 from src.models.CoinPrice import CoinPrice
 
 

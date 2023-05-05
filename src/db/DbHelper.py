@@ -9,22 +9,8 @@ Database Helper function to create tables
 from enum import Enum, auto
 
 from src.data.CoinData import CoinData
+from src.data.DbData import DbTableName
 from src.db.Db import Db
-
-
-class DbTableName(Enum):
-    """Class for enumerating table names
-    """
-    COIN = 'coin'
-    WEBSITE = 'website'
-
-
-class DbWebsiteName(Enum):
-    """Class for enumerating website / exchange names
-    """
-    COINGECKO = auto()
-    CRYPTOWATCH = auto()
-    ALCOR = auto()
 
 
 def create_coin_table(db: Db):

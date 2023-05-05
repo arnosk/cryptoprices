@@ -8,7 +8,7 @@ Controller part for searching crypto coins on website / exchanges
 """
 import src.db.DbHelper as DbHelper
 from src.data.CoinData import CoinData, CoinSearchData
-from src.data.CoinViewData import DbResultStatus
+from src.data.DbData import DbResultStatus
 from src.db.Db import Db
 from src.models.CoinSearch import CoinSearch, SearchMethod
 from src.views.CoinSearchViewCli import CoinSearchViewCli

@@ -11,7 +11,7 @@ import re
 
 import config
 from src.controllers.CoinSearchController import CoinSearchController
-from src.db.DbHelper import DbWebsiteName
+from src.data.DbData import DbWebsiteName
 from src.db.DbPostgresql import DbPostgresql
 from src.db.DbSqlite3 import DbSqlite3
 from src.models.CoinSearch import SearchMethod

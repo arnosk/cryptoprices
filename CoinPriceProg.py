@@ -13,7 +13,7 @@ import config
 import src.db.DbHelper as DbHelper
 from src.controllers.CoinPriceController import CoinPriceController
 from src.data.CoinData import CoinData
-from src.db.DbHelper import DbWebsiteName
+from src.data.DbData import DbWebsiteName
 from src.db.DbPostgresql import DbPostgresql
 from src.db.DbSqlite3 import DbSqlite3
 from src.models.CoinPriceAlcor import CoinPriceAlcor

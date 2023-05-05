@@ -11,7 +11,7 @@ import re
 import config
 import src.func.helperfunc as helperfunc
 from src.data.CoinData import CoinData, CoinSearchData
-from src.db.DbHelper import DbWebsiteName
+from src.data.DbData import DbWebsiteName
 from src.models.CoinSearch import CoinSearch
 
 
