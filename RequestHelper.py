@@ -5,6 +5,7 @@ Created on Apr 21, 2022
 
 Request URL Helper to get response from API 
 """
+import ssl
 import time
 from typing import Callable
 
@@ -51,11 +52,13 @@ class RequestHelper():
         resp = {}
         response = requests.Response
         request_timeout = 60
+        verify = True
+        requests.packages.urllib3.disable_warnings()  # type: ignore
 
-        try:
-            while True:
+        while True:
+            try:
                 response = self.session.get(
-                    url, timeout=request_timeout, stream=stream, verify=True)
+                    url, timeout=request_timeout, stream=stream, verify=verify)
                 if response.status_code == 429:
                     if 'Retry-After' in response.headers.keys():
                         sleep_time = int(response.headers['Retry-After'])+1
@@ -64,14 +67,28 @@ class RequestHelper():
                         break  # raise requests.exceptions.RequestException
                 else:
                     break
-        except requests.exceptions.RequestException:
-            print('Header request exception:', response.headers)
-            print(response.text)
-            raise
-        except Exception:
-            print('Exception:', response.headers)
-            print(response.text)
-            raise
+            except requests.exceptions.SSLError as e:
+                print('-1-Start-----------------------------------')
+                print('Requests SSL Error:', e)
+                verify = False  # raise
+                # todo: Download ssl certification and try again
+                # serverHost = 'proton.alcor.exchange'
+                # serverPort = '443'
+                # serverAddress = (serverHost, serverPort)
+                # cert = ssl.get_server_certificate(serverAddress)
+            except ssl.SSLCertVerificationError as e:
+                print('-2-Start-----------------------------------')
+                print('SSL Certification Error:', e)
+                verify = False  # raise
+            except requests.exceptions.RequestException as e:
+                print('-3-Start-----------------------------------')
+                print('Request exception:', e)
+                # raise
+            except Exception as e:
+                print('-4-Start-----------------------------------')
+                print('Exception:', e)
+                # raise
+            print('---End-------------------------------------')
 
         try:
             # get json from response, with type dict (mostly) or type list (Alcor exchange)
