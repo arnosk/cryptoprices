@@ -76,6 +76,7 @@ class RequestHelper():
                 # serverPort = '443'
                 # serverAddress = (serverHost, serverPort)
                 # cert = ssl.get_server_certificate(serverAddress)
+                # cacet.pem = requests.certs.where()
             except ssl.SSLCertVerificationError as e:
                 print('-2-Start-----------------------------------')
                 print('SSL Certification Error:', e)
