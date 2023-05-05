@@ -9,8 +9,8 @@ Base Class CoinPrice
 from abc import ABC, abstractmethod
 from typing import Callable
 
-from CoinData import CoinData, CoinPriceData
-from RequestHelper import RequestHelper
+from src.data.CoinData import CoinData, CoinPriceData
+from src.req.RequestHelper import RequestHelper
 
 
 class CoinPrice(ABC):

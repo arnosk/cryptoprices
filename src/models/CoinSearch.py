@@ -9,10 +9,10 @@ Base Class CoinSearch
 from abc import ABC, abstractmethod
 from enum import Enum, auto
 
-import DbHelper
-from CoinData import CoinData, CoinSearchData
-from Db import Db
-from RequestHelper import RequestHelper
+import src.db.DbHelper as DbHelper
+from src.data.CoinData import CoinData, CoinSearchData
+from src.db.Db import Db
+from src.req.RequestHelper import RequestHelper
 
 
 class SearchMethod(Enum):

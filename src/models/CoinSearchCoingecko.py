@@ -27,12 +27,12 @@ the key coins has a list of the search result of coins
 import re
 
 import config
-import DbHelper
-import helperfunc
-from CoinData import CoinData, CoinSearchData
-from CoinSearch import CoinSearch, SearchMethod
-from Db import Db
-from DbHelper import DbWebsiteName
+import src.db.DbHelper as DbHelper
+import src.func.helperfunc as helperfunc
+from src.data.CoinData import CoinData, CoinSearchData
+from src.db.Db import Db
+from src.db.DbHelper import DbWebsiteName
+from src.models.CoinSearch import CoinSearch, SearchMethod
 
 
 class CoinSearchCoingecko(CoinSearch):

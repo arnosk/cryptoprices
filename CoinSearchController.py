@@ -10,18 +10,18 @@ import argparse
 import re
 
 import config
-import DbHelper
-from CoinData import CoinData, CoinSearchData
-from CoinSearch import CoinSearch, SearchMethod
-from CoinSearchAlcor import CoinSearchAlcor
-from CoinSearchCoingecko import CoinSearchCoingecko
-from CoinSearchCryptowatch import CoinSearchCryptowatch
-from CoinSearchViewCli import CoinSearchViewCli
-from CoinViewData import DbResultStatus
-from Db import Db
-from DbHelper import DbWebsiteName
-from DbPostgresql import DbPostgresql
-from DbSqlite3 import DbSqlite3
+import src.db.DbHelper as DbHelper
+from src.data.CoinData import CoinData, CoinSearchData
+from src.data.CoinViewData import DbResultStatus
+from src.db.Db import Db
+from src.db.DbHelper import DbWebsiteName
+from src.db.DbPostgresql import DbPostgresql
+from src.db.DbSqlite3 import DbSqlite3
+from src.models.CoinSearch import CoinSearch, SearchMethod
+from src.models.CoinSearchAlcor import CoinSearchAlcor
+from src.models.CoinSearchCoingecko import CoinSearchCoingecko
+from src.models.CoinSearchCryptowatch import CoinSearchCryptowatch
+from src.views.CoinSearchViewCli import CoinSearchViewCli
 
 
 class CoinSearchController():

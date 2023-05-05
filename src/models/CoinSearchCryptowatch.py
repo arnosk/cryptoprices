@@ -9,10 +9,10 @@ Cryptowat.ch search
 import re
 
 import config
-import helperfunc
-from CoinData import CoinData, CoinSearchData
-from CoinSearch import CoinSearch
-from DbHelper import DbWebsiteName
+import src.func.helperfunc as helperfunc
+from src.data.CoinData import CoinData, CoinSearchData
+from src.db.DbHelper import DbWebsiteName
+from src.models.CoinSearch import CoinSearch
 
 
 class CoinSearchCryptowatch(CoinSearch):

@@ -8,8 +8,8 @@ Database Helper function to create tables
 """
 from enum import Enum, auto
 
-from CoinData import CoinData
-from Db import Db
+from src.data.CoinData import CoinData
+from src.db.Db import Db
 
 
 class DbTableName(Enum):

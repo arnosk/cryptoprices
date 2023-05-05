@@ -10,17 +10,17 @@ import argparse
 import re
 
 import config
-import DbHelper
-from CoinData import CoinData, CoinPriceData
-from CoinPrice import CoinPrice
-from CoinPriceAlcor import CoinPriceAlcor
-from CoinPriceCoingecko import CoinPriceCoingecko
-from CoinPriceCryptowatch import CoinPriceCryptowatch
-from CoinPriceViewCli import CoinPriceViewCli
-from Db import Db
-from DbHelper import DbWebsiteName
-from DbPostgresql import DbPostgresql
-from DbSqlite3 import DbSqlite3
+import src.db.DbHelper as DbHelper
+from src.data.CoinData import CoinData, CoinPriceData
+from src.db.Db import Db
+from src.db.DbHelper import DbWebsiteName
+from src.db.DbPostgresql import DbPostgresql
+from src.db.DbSqlite3 import DbSqlite3
+from src.models.CoinPrice import CoinPrice
+from src.models.CoinPriceAlcor import CoinPriceAlcor
+from src.models.CoinPriceCoingecko import CoinPriceCoingecko
+from src.models.CoinPriceCryptowatch import CoinPriceCryptowatch
+from src.views.CoinPriceViewCli import CoinPriceViewCli
 
 
 class CoinPriceController():

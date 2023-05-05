@@ -13,9 +13,9 @@ from typing import Protocol
 
 import pandas as pd
 
-from CoinData import CoinData, CoinSearchData
-from CoinSearch import SearchMethod
-from CoinViewData import Command, DbResultStatus, SearchFunction
+from src.data.CoinData import CoinData, CoinSearchData
+from src.data.CoinViewData import Command, DbResultStatus, SearchFunction
+from src.models.CoinSearch import SearchMethod
 
 
 class SearchController(Protocol):

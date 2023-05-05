@@ -18,9 +18,9 @@ from typing import Protocol
 import pandas as pd
 
 import config
-import helperfunc
-from CoinData import CoinData, CoinPriceData
-from CoinViewData import Command, OutputFileType, PriceFunction
+import src.func.helperfunc as helperfunc
+from src.data.CoinData import CoinData, CoinPriceData
+from src.data.CoinViewData import Command, OutputFileType, PriceFunction
 
 
 class PriceController(Protocol):

@@ -8,7 +8,7 @@ Database Helper Utilities Class
 """
 import psycopg2
 
-from Db import Db
+from src.db.Db import Db
 
 
 class DbPostgresql(Db):

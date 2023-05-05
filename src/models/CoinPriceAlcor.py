@@ -12,10 +12,10 @@ import math
 from datetime import datetime
 
 import config
-import helperfunc
-from CoinData import CoinData, CoinMarketData, CoinPriceData
-from CoinPrice import CoinPrice
-from DbHelper import DbWebsiteName
+import src.func.helperfunc as helperfunc
+from src.data.CoinData import CoinData, CoinMarketData, CoinPriceData
+from src.db.DbHelper import DbWebsiteName
+from src.models.CoinPrice import CoinPrice
 
 
 class CoinPriceAlcor(CoinPrice):
