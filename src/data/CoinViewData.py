@@ -1,7 +1,7 @@
 """
-Created on December 26, 2022
-
-@author: arno
+@author: Arno
+@created: 2022-12-26
+@modified: 2023-05-20
 
 Data enumerations for view
 

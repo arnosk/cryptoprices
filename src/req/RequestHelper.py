@@ -1,7 +1,7 @@
 """
-Created on Apr 21, 2022
-
-@author: arno
+@author: Arno
+@created: 2022-04-21
+@modified: 2023-05-20
 
 Request URL Helper to get response from API 
 """

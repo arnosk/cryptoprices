@@ -1,7 +1,7 @@
 """
-Created on December 22, 2022
-
-@author: arno
+@author: Arno
+@created: 2022-12-22
+@modified: 2023-05-20
 
 Several helper functions
 

@@ -1,7 +1,7 @@
 """
-Created on Aug 31, 2022
-
-@author: arno
+@author: Arno
+@created: 2022-08-31
+@modified: 2023-05-20
 
 Collecting prices
 

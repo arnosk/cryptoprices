@@ -1,7 +1,7 @@
 """
-Created on Mar 29, 2022
-
-@author: arno
+@author: Arno
+@created: 2022-03-29
+@modified: 2023-05-20
 
 Coingecko search
 Search id for coins to finally get price from coingecko

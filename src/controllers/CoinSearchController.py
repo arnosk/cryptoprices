@@ -1,7 +1,7 @@
 """
-Created on December 29, 2022
-
-@author: arno
+@author: Arno
+@created: 2022-12-29
+@modified: 2023-05-20
 
 Controller part for searching crypto coins on website / exchanges
 

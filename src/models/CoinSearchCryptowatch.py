@@ -1,7 +1,7 @@
 """
-Created on Apr 23, 2022
-
-@author: arno
+@author: Arno
+@created: 2022-04-23
+@modified: 2023-05-20
 
 Cryptowat.ch search
 

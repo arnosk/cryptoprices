@@ -1,7 +1,7 @@
 """
-Created on May 5, 2023
-
-@author: arno
+@author: Arno
+@created: 2022-05-05
+@modified: 2023-05-20
 
 Data enumerations for database 
 

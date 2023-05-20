@@ -1,7 +1,7 @@
 """
-Created on October 13, 2022
-
-@author: arno
+@author: Arno
+@created: 2022-10-13
+@modified: 2023-05-20
 
 Base Class CoinSearch
 

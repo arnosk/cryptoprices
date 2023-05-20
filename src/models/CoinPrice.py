@@ -1,7 +1,7 @@
 """
-Created on October 15, 2022
-
-@author: arno
+@author: Arno
+@created: 2022-10-15
+@modified: 2023-05-20
 
 Base Class CoinPrice
 

@@ -1,7 +1,7 @@
 """
-Created on November 20, 2022
-
-@author: arno
+@author: Arno
+@created: 2022-11-20
+@modified: 2023-05-20
 
 Data Classes for Coin data
 
