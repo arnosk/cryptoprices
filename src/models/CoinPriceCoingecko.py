@@ -41,7 +41,7 @@ class CoinPriceCoingecko(CoinPrice):
 
         api_demo = config.COINGECKO_API_DEMO
         if api_demo != "":
-            params["x-cg-demo-api-key"] = api_demo
+            params["x_cg_demo_api_key"] = api_demo
 
         url = f"{config.COINGECKO_URL}/simple/price"
         url = self.req.api_url_params(url, params)
@@ -82,6 +82,10 @@ class CoinPriceCoingecko(CoinPrice):
         params = {}
         params["vs_currencies"] = curr
         params["include_last_updated_at"] = True
+
+        api_demo = config.COINGECKO_API_DEMO
+        if api_demo != "":
+            params["x_cg_demo_api_key"] = api_demo
 
         # create empty list of CoinPriceData from respone
         prices: list[CoinPriceData] = []
@@ -129,12 +133,23 @@ class CoinPriceCoingecko(CoinPrice):
         dt = helperfunc.convert_str_to_date(date)
         date = helperfunc.convert_date_to_utc_str(dt)
 
+        # prepare parameters for api call
+        params = {}
+        params["date"] = date
+        params["localization"] = False
+
+        api_demo = config.COINGECKO_API_DEMO
+        if api_demo != "":
+            params["x_cg_demo_api_key"] = api_demo
+
         prices: list[CoinPriceData] = []
         i = 0
         for coin in coindata:
             i += 1
             self.view_update_progress(i, len(coindata))
-            url = f"{config.COINGECKO_URL}/coins/{coin.siteid}/history?date={date}&localization=false"
+            # url = f"{config.COINGECKO_URL}/coins/{coin.siteid}/history?date={date}&localization=false"
+            url = f"{config.COINGECKO_URL}/coins/{coin.siteid}/history"
+            url = self.req.api_url_params(url, params)
             resp = self.req.get_request_response(url)
 
             if resp["status_code"] == "error":
@@ -193,6 +208,10 @@ class CoinPriceCoingecko(CoinPrice):
         params = {}
         params["from"] = ts
         params["to"] = ts
+
+        api_demo = config.COINGECKO_API_DEMO
+        if api_demo != "":
+            params["x_cg_demo_api_key"] = api_demo
 
         prices: list[CoinPriceData] = []
         i = 0
