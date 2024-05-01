@@ -5,6 +5,7 @@
 
 Request URL Helper to get response from API 
 """
+
 import ssl
 import time
 from typing import Callable
@@ -14,7 +15,7 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 
-class RequestHelper():
+class RequestHelper:
     """
     Functions to help requesting response from an API
     """
@@ -25,27 +26,29 @@ class RequestHelper():
 
     @staticmethod
     def _init_session():
-        """Initialization of the session 
-        """
+        """Initialization of the session"""
         session = requests.Session()
-        #session.headers.update({'Accept': 'application/json'})
-        retry = Retry(total=5, backoff_factor=1.5,
-                      respect_retry_after_header=False,  # False: show sleep time via this class
-                      status_forcelist=[502, 503, 504])
+        # session.headers.update({'Accept': 'application/json'})
+        retry = Retry(
+            total=5,
+            backoff_factor=2,
+            respect_retry_after_header=False,  # False: show sleep time via this class
+            status_forcelist=[502, 503, 504],
+        )
         adapter = HTTPAdapter(max_retries=retry)
-        session.mount('http://', adapter)
-        session.mount('https://', adapter)
+        session.mount("http://", adapter)
+        session.mount("https://", adapter)
         return session
 
     def update_header(self, params: dict):
-        """Update the header of the session 
+        """Update the header of the session
 
         params = dictionary with parameters for the header
         """
         self.session.headers.update(params)
 
     def get_request_response(self, url: str, stream=False) -> dict:
-        """general request url function 
+        """general request url function
 
         url = api url for request
         """
@@ -58,18 +61,20 @@ class RequestHelper():
         while True:
             try:
                 response = self.session.get(
-                    url, timeout=request_timeout, stream=stream, verify=verify)
+                    url, timeout=request_timeout, stream=stream, verify=verify
+                )
                 if response.status_code == 429:
-                    if 'Retry-After' in response.headers.keys():
-                        sleep_time = int(response.headers['Retry-After'])+1
+                    if "Retry-After" in response.headers.keys():
+                        sleep_time = int(response.headers["Retry-After"]) + 1
                         self.sleep_print_time(sleep_time)
                     else:
-                        break  # raise requests.exceptions.RequestException
+                        sleep_time = 65
+                        self.sleep_print_time(sleep_time)
                 else:
-                    break
+                    break  # raise requests.exceptions.RequestException
             except requests.exceptions.SSLError as e:
-                print('-1-Start-----------------------------------')
-                print('Requests SSL Error:', e)
+                print("-1-Start-----------------------------------")
+                print("Requests SSL Error:", e)
                 verify = False  # raise
                 # todo: Download ssl certification and try again
                 # serverHost = 'proton.alcor.exchange'
@@ -78,18 +83,18 @@ class RequestHelper():
                 # cert = ssl.get_server_certificate(serverAddress)
                 # cacet.pem = requests.certs.where()
             except ssl.SSLCertVerificationError as e:
-                print('-2-Start-----------------------------------')
-                print('SSL Certification Error:', e)
+                print("-2-Start-----------------------------------")
+                print("SSL Certification Error:", e)
                 verify = False  # raise
             except requests.exceptions.RequestException as e:
-                print('-3-Start-----------------------------------')
-                print('Request exception:', e)
+                print("-3-Start-----------------------------------")
+                print("Request exception:", e)
                 # raise
             except Exception as e:
-                print('-4-Start-----------------------------------')
-                print('Exception:', e)
+                print("-4-Start-----------------------------------")
+                print("Exception:", e)
                 # raise
-            print('---End-------------------------------------')
+            print("---End-------------------------------------")
 
         try:
             # get json from response, with type dict (mostly) or type list (Alcor exchange)
@@ -97,31 +102,31 @@ class RequestHelper():
 
             # when return type is a list, convert to dict
             if isinstance(resp_unknown, list):
-                resp.update({'result': resp_unknown})
+                resp.update({"result": resp_unknown})
             else:
                 resp = resp_unknown
 
         except Exception as e:
-            print('JSON Exception: ', e)
+            print("JSON Exception: ", e)
 
         try:
             response.raise_for_status()
-            resp.update({'status_code': response.status_code})
+            resp.update({"status_code": response.status_code})
 
         except requests.exceptions.HTTPError as e:
-            print('No status Exception: ', e)
+            print("No status Exception: ", e)
 
             # check if error key is in result dictionary
-            if 'error' in resp:
-                resp.update({'status_code': 'error'})
+            if "error" in resp:
+                resp.update({"status_code": "error"})
             else:
-                resp.update({'status_code': 'no status'})
+                resp.update({"status_code": "no status"})
 
         except Exception as e:
-            print('Other Exception: ', e)  # , response.json())
+            print("Other Exception: ", e)  # , response.json())
             # raise
-            resp.update({'status_code': 'error'})
-            resp.update({'prices': []})
+            resp.update({"status_code": "error"})
+            resp.update({"prices": []})
 
         return resp
 
@@ -138,12 +143,12 @@ class RequestHelper():
             # adding second '?' (api_url += '&' if '?' in api_url else '?'); causes
             # issues with request parametes (usually for endpoints with required
             # arguments passed as parameters)
-            url += '&' if api_url_has_params else '?'
+            url += "&" if api_url_has_params else "?"
             for key, value in params.items():
                 if type(value) == bool:
                     value = str(value).lower()
 
-                url += f'{key}={value}&'
+                url += f"{key}={value}&"
             url = url[:-1]
         return url
 
@@ -158,9 +163,10 @@ class RequestHelper():
             self.view_update_waiting_time(i)
             time.sleep(1)
 
-    def attach_view_update_waiting_time(self, fn_waiting_time: Callable[[int], None]) -> None:
-        """Set the viewers waiting time function to the coinprice program
-        """
+    def attach_view_update_waiting_time(
+        self, fn_waiting_time: Callable[[int], None]
+    ) -> None:
+        """Set the viewers waiting time function to the coinprice program"""
         self.view_update_waiting_time = fn_waiting_time
 
 
@@ -168,5 +174,5 @@ def __main__():
     pass
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     __main__()
