@@ -254,7 +254,7 @@ class CoinPriceCoingecko(CoinPrice):
             # retry same coin with new date range
             params_try["from"] -= 2 ** (2 * nr_try) * 3600
             params_try["to"] += 2 ** (2 * nr_try) * 3600
-            params_try["to"] = max(params_try["to"], tsnow)
+            params_try["to"] = min(params_try["to"], tsnow)
 
             url_try = self.req.api_url_params(url, params_try)
             resp = self.req.get_request_response(url_try)
