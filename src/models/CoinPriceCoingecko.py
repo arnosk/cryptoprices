@@ -1,7 +1,7 @@
 """
 @author: Arno
 @created: 2022-03-23
-@modified: 2023-05-20
+@modified: 2025-08-05
 
 Collecting prices
 
@@ -248,11 +248,13 @@ class CoinPriceCoingecko(CoinPrice):
         price = math.nan
         volume = math.nan
         error = "no data found"
+        tsnow = helperfunc.get_current_time()
 
         for nr_try in range(1, self.nr_try_max):
             # retry same coin with new date range
             params_try["from"] -= 2 ** (2 * nr_try) * 3600
             params_try["to"] += 2 ** (2 * nr_try) * 3600
+            params_try["to"] = max(params_try["to"], tsnow)
 
             url_try = self.req.api_url_params(url, params_try)
             resp = self.req.get_request_response(url_try)

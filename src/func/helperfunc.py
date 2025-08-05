@@ -6,6 +6,7 @@
 Several helper functions
 
 """
+
 import os
 from datetime import datetime, timezone
 
@@ -23,23 +24,23 @@ def save_file(url: str, folder: str, filename: str):
     folder = folder for saving downloaded file
     filename = filename for saving downloaded file
     """
-    if url != '':
+    if url != "":
         os.makedirs(folder, exist_ok=True)
 
-        url = url.split('?')[0]
-        ext = url.split('.')[-1]
-        file = f'{folder}\\{filename}.{ext}'
+        url = url.split("?")[0]
+        ext = url.split(".")[-1]
+        file = f"{folder}\\{filename}.{ext}"
 
         # Download file
         scraper = cfscrape.create_scraper()
         cfurl = scraper.get(url).content
 
         # Safe file
-        with open(file, 'wb') as f:
+        with open(file, "wb") as f:
             f.write(cfurl)
-        print(f'Image file saved: {file}')
+        print(f"Image file saved: {file}")
     else:
-        print(f'URL is empty! No image filed saved {filename}')
+        print(f"URL is empty! No image filed saved {filename}")
 
 
 def convert_timestamp(ts: int, ms: bool = False) -> datetime:
@@ -49,7 +50,7 @@ def convert_timestamp(ts: int, ms: bool = False) -> datetime:
     ts = timestamp in msec if ms = True
     """
     if ms:
-        ts = int(ts/1000)
+        ts = int(ts / 1000)
     dt = datetime.fromtimestamp(ts, tz=timezone.utc)
     return dt
 
@@ -59,12 +60,24 @@ def remove_tz(serie: pd.Series) -> pd.Series:
 
     because excel cannot handle this timezone
     """
-    return serie.apply(lambda d: d if d.tzinfo is None or d.tzinfo.utcoffset(d) is None else pd.to_datetime(d).tz_localize(None))
+    return serie.apply(
+        lambda d: (
+            d
+            if d.tzinfo is None or d.tzinfo.utcoffset(d) is None
+            else pd.to_datetime(d).tz_localize(None)
+        )
+    )
 
 
 def get_date_identifier() -> int:
     day_of_year = datetime.now().timetuple().tm_yday
     return day_of_year
+
+
+def get_current_time() -> int:
+    dt = datetime.now()
+    ts = int(dt.timestamp())
+    return ts
 
 
 def convert_str_to_date(date: str) -> datetime:
@@ -75,13 +88,12 @@ def convert_str_to_date(date: str) -> datetime:
     try:
         dt = parser.parse(date, default=default_dt)
     except parser.ParserError as e:
-        print(f'Date format error: {e}')
+        print(f"Date format error: {e}")
         return default_dt
     else:
         return dt
 
 
 def convert_date_to_utc_str(dt: datetime) -> str:
-    """Convert datetime with timezone to a string in UTC
-    """
-    return dt.astimezone(tz=timezone.utc).strftime('%d-%m-%Y_%H:%M')
+    """Convert datetime with timezone to a string in UTC"""
+    return dt.astimezone(tz=timezone.utc).strftime("%d-%m-%Y_%H:%M")
