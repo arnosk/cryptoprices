@@ -245,10 +245,10 @@ class CoinPriceCoingecko(CoinPrice):
             url = f"{config.COINGECKO_URL}/coins/{coin.chain}/contract/{coin.siteid}/market_chart/range"
 
         date = dt
+        tsnow = helperfunc.get_current_time()
         price = math.nan
         volume = math.nan
         error = "no data found"
-        tsnow = helperfunc.get_current_time()
 
         for nr_try in range(1, self.nr_try_max):
             # retry same coin with new date range
