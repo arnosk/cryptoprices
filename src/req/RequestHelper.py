@@ -3,7 +3,7 @@
 @created: 2022-04-21
 @modified: 2023-05-20
 
-Request URL Helper to get response from API 
+Request URL Helper to get response from API
 """
 
 import ssl
