@@ -62,7 +62,11 @@ class CoinPriceViewCli:
 
     def update_waiting_time(self, time: int) -> None:
         """Show waiting time"""
-        print(f"\rWaiting for retry, {time:3d} seconds remaining.", end="", flush=True)
+        print(
+            f"\r\t\t\t\tWaiting for retry, {time:3d} seconds remaining.",
+            end="",
+            flush=True,
+        )
 
     def write_to_file(
         self,

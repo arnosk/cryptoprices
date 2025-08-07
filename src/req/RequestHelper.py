@@ -73,7 +73,7 @@ class RequestHelper:
                 else:
                     break  # raise requests.exceptions.RequestException
             except requests.exceptions.SSLError as e:
-                print("-1-Start-----------------------------------")
+                print("-1-Start---")
                 print("Requests SSL Error:", e)
                 verify = False  # raise
                 # todo: Download ssl certification and try again
@@ -83,18 +83,22 @@ class RequestHelper:
                 # cert = ssl.get_server_certificate(serverAddress)
                 # cacet.pem = requests.certs.where()
             except ssl.SSLCertVerificationError as e:
-                print("-2-Start-----------------------------------")
+                print("-2-Start---")
                 print("SSL Certification Error:", e)
                 verify = False  # raise
             except requests.exceptions.RequestException as e:
-                print("-3-Start-----------------------------------")
+                print("-3-Start---")
                 print("Request exception:", e)
                 # raise
             except Exception as e:
-                print("-4-Start-----------------------------------")
+                print("-4-Start---")
                 print("Exception:", e)
                 # raise
-            print("---End-------------------------------------")
+            print(
+                "\r\t\t\t\t---Resuming------------------------------",
+                end="",
+                flush=True,
+            )
 
         try:
             # get json from response, with type dict (mostly) or type list (Alcor exchange)
